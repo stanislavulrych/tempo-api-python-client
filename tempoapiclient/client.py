@@ -24,13 +24,18 @@ from six.moves.urllib.parse import quote
 
 
 class Tempo(object):
+    """
+    Basic Client for accessing Tempo Rest API as provided by api.tempo.io.
+    """
+
     # Maximum number of result in single response (pagination)
     # NOTE: maximum number allowed by API is 1000
     MAX_RESULTS = 1000
 
-    def __init__(self, base_url, auth_token):
+    def __init__(self, auth_token, base_url="https://api.tempo.io/core/3"):
         self._token = auth_token
         self.BASE_URL = base_url
+        self.work_attributes = None
 
     def _resolve_date(self, value):
         if isinstance(value, datetime):
@@ -66,10 +71,21 @@ class Tempo(object):
             if "next" not in metadata or metadata.get("count", 0) < metadata.get("limit", 0):
                 break
 
-    def _get_work_attributes(self):
+
+    def get_work_attributes(self):
+        """
+        Returns work attributeslogs inside ```date_from``` and ```date_to```, 
+        for particular ```user```, adding work attributes if ```add_work_attributes```.
+        """
         return { x["key"]: x for x in self._list("/work-attributes") }
 
-    def _iterate_worklogs(self, date_from, date_to, user=None):
+
+    def get_worklogs(self, date_from, date_to, user=None, add_work_attributes=False):
+        """
+        Returns worklogs inside ```date_from``` and ```date_to```, 
+        for particular ```user```, adding work attributes if ```add_work_attributes```.
+        """
+
         work_attributes = None
         date_from = self._resolve_date(date_from).isoformat()
         date_to = self._resolve_date(date_to).isoformat()
@@ -77,30 +93,35 @@ class Tempo(object):
         if user is not None:
             url += "/user/{}".format(user)
         params = { "from": date_from, "to": date_to, "limit": self.MAX_RESULTS }
-        for worklog in self._list(url, **params):
-            attributes = (worklog.get("attributes") or {}).get("values") or []
+        l = self._list(url, **params)
+        
+        # restructure workattributes
+        
+        if not self.work_attributes:
+            self.work_attributes = self.get_work_attributes()
+
+        for worklog in l:
+            attributes = (worklog.get("attributes") or {}).get("values") or {}
             resolved_attributes = {}
-            if attributes:
-                if work_attributes is None:
-                    work_attributes = self._get_work_attributes()
-                for attribute in attributes:
-                    key = attribute["key"]
-                    name = work_attributes.get(key, {}).get("name", key)
-                    resolved_attributes[name] = attribute["value"]
-                worklog["attributes"] = resolved_attributes
+            
+            for attribute in attributes:
+                key = attribute["key"]
+                name = self.work_attributes.get(key, {}).get("name", key)
+                resolved_attributes[name] = attribute["value"]
+            
+            worklog["attributes"] = resolved_attributes
             yield worklog
 
-    def get_worklogs(self, date_from, date_to, user=None):
-        return list(self._iterate_worklogs(date_from, date_to, user))
 
-    def _iterate_user_schedule(self, date_from, date_to, user):
+    def get_user_schedule(self, date_from, date_to, user=None):
+        """
+        Returns user schedule inside ```date_from``` and ```date_to```, 
+        for particular ```user```.
+        """
         date_from = self._resolve_date(date_from).isoformat()
         date_to = self._resolve_date(date_to).isoformat()
         url = "/user-schedule"
         if user is not None:
             url += "/{}".format(user)
         params = { "from": date_from, "to": date_to, "limit": self.MAX_RESULTS }
-        return self._list(url, **params)
-
-    def get_user_schedule(self, date_from, date_to, user):
-        return list(self.iterate_schedule(date_from, date_to, user))
+        return list(self._list(url, **params))
