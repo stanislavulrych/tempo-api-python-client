@@ -10,4 +10,4 @@ class TestModule(TestCase):
             auth_token="<your_tempo_api_key>",
             base_url="https://api.tempo.io/core/3")
 
-        self.assertTrue(isinstance(tempo, tempoapiclient.Client.Tempo))
+        self.assertTrue(isinstance(tempo, tempoapiclient.client.Tempo))
