@@ -71,6 +71,39 @@ class Tempo(object):
             if "next" not in metadata or metadata.get("count", 0) < metadata.get("limit", 0):
                 break
 
+    def get_accounts(self):
+        """
+        Retrieve existing accounts.
+        """
+        return { x["key"]: x for x in self._list("/accounts") }
+
+
+
+    def get_account_categories(self):
+        """
+        Retrieve existing account categories.
+        """
+        return { x["key"]: x for x in self._list("/account-categories") }
+
+
+    def get_account_category_types(self):
+        """
+        Retrieve all periods for a given date range
+        """
+        return list(self._list("/account-category-types"))
+
+
+    def get_periods(self, date_from, date_to):
+        """
+        Retrieve periods.
+        """
+        params = { 
+            "from": self._resolve_date(date_from).isoformat(), 
+            "to": self._resolve_date(date_to).isoformat()
+            }
+
+        return list(self._list("/periods", **params) )
+
 
     def get_work_attributes(self):
         """
