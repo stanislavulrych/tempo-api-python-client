@@ -16,6 +16,8 @@ pip install tempo-api-python-client
 
 ## Getting Started
 
+You need an API token for communicating with tempo REST APIs. Documentation could be found at https://tempo.io/doc/timesheets/api/rest/latest/
+
 ```
 from tempoapiclient import client
 
