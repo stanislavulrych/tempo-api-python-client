@@ -112,28 +112,8 @@ class Tempo(object):
         """
         return { x["key"]: x for x in self._list("/work-attributes") }
 
-
-    def get_worklogs(self, date_from, date_to, user=None, add_work_attributes=False):
-        """
-        Returns worklogs inside ```date_from``` and ```date_to```, 
-        for particular ```user```, adding work attributes if ```add_work_attributes```.
-        """
-
-        work_attributes = None
-        date_from = self._resolve_date(date_from).isoformat()
-        date_to = self._resolve_date(date_to).isoformat()
-        url = "/worklogs"
-        if user is not None:
-            url += "/user/{}".format(user)
-        params = { "from": date_from, "to": date_to, "limit": self.MAX_RESULTS }
-        l = self._list(url, **params)
-        
-        # restructure workattributes
-        
-        if not self.work_attributes:
-            self.work_attributes = self.get_work_attributes()
-
-        for worklog in l:
+    def _process_worklogs(self, worklogs):
+        for worklog in worklogs:
             attributes = (worklog.get("attributes") or {}).get("values") or {}
             resolved_attributes = {}
             
@@ -145,6 +125,39 @@ class Tempo(object):
             worklog["attributes"] = resolved_attributes
             yield worklog
 
+    def get_all_worklogs(self, date_from, date_to):
+        date_from = self._resolve_date(date_from).isoformat()
+        date_to = self._resolve_date(date_to).isoformat()
+        url = f"/worklogs"
+        params = { "from": date_from, "to": date_to, "limit": self.MAX_RESULTS }
+        l = self._list(url, **params)
+        return self._process_worklogs(l)
+
+    def get_user_worklogs(self, date_from, date_to, userid):
+        """
+        Returns worklogs inside ```date_from``` and ```date_to```, 
+        for particular ```user```.
+        """
+
+        date_from = self._resolve_date(date_from).isoformat()
+        date_to = self._resolve_date(date_to).isoformat()
+        url = f"/worklogs/user/{userid}"
+        params = { "from": date_from, "to": date_to, "limit": self.MAX_RESULTS }
+        l = self._list(url, **params)
+        return self._process_worklogs(l)
+
+    def get_team_worklogs(self, date_from, date_to, teamid):
+        """
+        Returns worklogs inside ```date_from``` and ```date_to```, 
+        for particular ```team```.
+        """
+
+        date_from = self._resolve_date(date_from).isoformat()
+        date_to = self._resolve_date(date_to).isoformat()
+        url = f"/worklogs/team/{teamid}"
+        params = { "from": date_from, "to": date_to, "limit": self.MAX_RESULTS }
+        l = self._list(url, **params)
+        return self._process_worklogs(l)
 
     def get_user_schedule(self, date_from, date_to, user=None):
         """
