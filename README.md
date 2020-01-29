@@ -25,7 +25,7 @@ tempo = client.Tempo(
     auth_token="<your_tempo_api_key>",
     base_url="https://api.tempo.io/core/3")
 
-worklogs = tempo.get_worklogs(
+worklogs = tempo.get_all_worklogs(
     date_from="2019-11-10",
     date_to="2019-11-11"
     )
@@ -33,6 +33,8 @@ worklogs = tempo.get_worklogs(
 for i in worklogs:
     print(i)
 ```
+
+There are also functions to retrieve `user` and `team`-specific worklogs.
 
 
 ## Contributing
