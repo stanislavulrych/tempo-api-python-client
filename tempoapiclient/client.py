@@ -14,9 +14,7 @@
 from __future__ import unicode_literals
 
 import requests
-
 from datetime import date, datetime
-from django.utils.dateparse import parse_datetime, parse_date
 
 
 class Tempo(object):
@@ -38,12 +36,8 @@ class Tempo(object):
             return value.date()
         if isinstance(value, date):
             return value
-        parsed = parse_date(value)
-        if not parsed:
-            parsed = parse_datetime(value)
-            if not parsed:
-                raise ValueError()
-            return parsed.date()
+    
+        parsed = date.fromisoformat(value)
         return parsed
 
     def _list(self, url, **params):
@@ -69,51 +63,60 @@ class Tempo(object):
 
     def get_accounts(self):
         """
-        Retrieve existing accounts.
+        Retrieve existing accounts as a dictionary.
         """
         return { x["key"]: x for x in self._list("/accounts") }
 
     def get_account_categories(self):
         """
-        Retrieve existing account categories.
+        Retrieve existing account categories as a dictionary.
         """
         return { x["key"]: x for x in self._list("/account-categories") }
 
     def get_account_category_types(self):
         """
-        Retrieve all periods for a given date range
+        Retrieve all periods for a given date range as a list.
         """
-        return list(self._list("/account-category-types"))
+        return self._list("/account-category-types")
 
     def get_periods(self, date_from, date_to):
         """
-        Retrieve periods.
+        Retrieve periods as a list.
         """
         params = {
             "from": self._resolve_date(date_from).isoformat(),
             "to": self._resolve_date(date_to).isoformat()
             }
 
-        return list(self._list("/periods", **params) )
+        return self._list("/periods", **params)
 
     def get_work_attributes(self):
         """
-        Returns work attributeslogs inside ```date_from``` and ```date_to```,
+        Returns worklog attributes inside ```date_from``` and ```date_to```,
         for particular ```user```, adding work attributes if ```add_work_attributes```.
         """
         return { x["key"]: x for x in self._list("/work-attributes") }
 
-    def _process_worklogs(self, worklogs):
+    def add_worklog_attributes(self, worklogs):
+        """
+        Return worklogs with added worklog attributes, destroys worklogs.
+        """
+
+        if not self.work_attributes:
+            self.work_attributes = self.get_work_attributes()
+
         for worklog in worklogs:
             attributes = (worklog.get("attributes") or {}).get("values") or {}
             resolved_attributes = {}
 
             for attribute in attributes:
-                key = attribute["key"]
-                name = self.work_attributes.get(key, {}).get("name", key)
-                resolved_attributes[name] = attribute["value"]
+                key = attribute.get("key")
+                if key:
+                    name = self.work_attributes.get(key, {}).get("name", key)
+                    resolved_attributes[name] = attribute["value"]
 
             worklog["attributes"] = resolved_attributes
+
             yield worklog
 
     def get_all_worklogs(self, date_from, date_to):
@@ -121,8 +124,7 @@ class Tempo(object):
         date_to = self._resolve_date(date_to).isoformat()
         url = f"/worklogs"
         params = { "from": date_from, "to": date_to, "limit": self.MAX_RESULTS }
-        l = self._list(url, **params)
-        return self._process_worklogs(l)
+        return self._list(url, **params)
 
     def get_user_worklogs(self, date_from, date_to, userid):
         """
@@ -134,8 +136,7 @@ class Tempo(object):
         date_to = self._resolve_date(date_to).isoformat()
         url = f"/worklogs/user/{userid}"
         params = { "from": date_from, "to": date_to, "limit": self.MAX_RESULTS }
-        l = self._list(url, **params)
-        return self._process_worklogs(l)
+        return self._list(url, **params)
 
     def get_team_worklogs(self, date_from, date_to, teamid):
         """
@@ -147,8 +148,7 @@ class Tempo(object):
         date_to = self._resolve_date(date_to).isoformat()
         url = f"/worklogs/team/{teamid}"
         params = { "from": date_from, "to": date_to, "limit": self.MAX_RESULTS }
-        l = self._list(url, **params)
-        return self._process_worklogs(l)
+        return self._list(url, **params)
 
     def get_user_schedule(self, date_from, date_to, user=None):
         """
@@ -161,4 +161,4 @@ class Tempo(object):
         if user is not None:
             url += "/{}".format(user)
         params = { "from": date_from, "to": date_to, "limit": self.MAX_RESULTS }
-        return list(self._list(url, **params))
+        return self._list(url, **params)
