@@ -159,6 +159,16 @@ class Tempo(object):
         l = self._list(url, **params)
         return self._process_worklogs(l)
 
+    def get_team_members(self, teamid):
+        """
+        Returns members for particular ```team```.
+        """
+
+        url = f"/teams/{teamid}/members"
+        l = self._list(url)
+        for element in l:
+            yield element
+
     def get_user_schedule(self, date_from, date_to, user=None):
         """
         Returns user schedule inside ```date_from``` and ```date_to```, 
