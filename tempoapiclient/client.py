@@ -61,6 +61,17 @@ class Tempo(object):
             if "next" not in metadata or metadata.get("count", 0) < metadata.get("limit", 0):
                 break
 
+    def _single(self, url, **params):
+        # Resolve parameters
+        url = self.BASE_URL + url
+        headers = { "Authorization": "Bearer {}".format(self._token) }
+
+        # Return a single result
+        response = requests.get(url, params=params, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        yield data
+
     def get_accounts(self):
         """
         Retrieve existing accounts as a dictionary.
@@ -156,9 +167,15 @@ class Tempo(object):
         """
 
         url = f"/teams/{teamid}/members"
-        l = self._list(url)
-        for element in l:
-            yield element
+        return self._list(url)
+
+    def get_team_memberships(self, membershipid):
+        """
+        Returns members for particular ```team membership id```.
+        """
+
+        url = f"/team-memberships/{membershipid}"
+        return self._single(url)
 
     def get_user_schedule(self, date_from, date_to, user=None):
         """
