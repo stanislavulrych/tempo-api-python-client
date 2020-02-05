@@ -177,6 +177,14 @@ class Tempo(object):
         url = f"/team-memberships/{membershipid}"
         return self._single(url)
 
+    def get_account_team_membership(self, teamid, accountid):
+        """
+        Returns the active team membership of a specific ```accountid``` in a specific  ```teamid```.
+        """
+
+        url = f"/teams/{teamid}/members/{accountid}"
+        return self._single(url)
+
     def get_user_schedule(self, date_from, date_to, user=None):
         """
         Returns user schedule inside ```date_from``` and ```date_to```,
