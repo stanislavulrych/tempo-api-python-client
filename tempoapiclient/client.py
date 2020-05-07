@@ -70,7 +70,10 @@ class Tempo(object):
         response = requests.get(url, params=params, headers=headers)
         response.raise_for_status()
         data = response.json()
-        yield data
+        return data
+
+
+# Accounts
 
     def get_accounts(self):
         """
@@ -78,32 +81,159 @@ class Tempo(object):
         """
         return { x["key"]: x for x in self._list("/accounts") }
 
+
+# Account - Categories
+
     def get_account_categories(self):
         """
         Retrieve existing account categories as a dictionary.
         """
         return { x["key"]: x for x in self._list("/account-categories") }
 
+
+# Account - Category - Types
+
     def get_account_category_types(self):
+
         """
         Retrieve all periods for a given date range as a list.
         """
         return self._list("/account-category-types")
 
-    def get_periods(self, date_from, date_to):
+# Account - Links
+
+    ## TBD
+
+
+# Customers
+
+    ## TBD
+
+
+# Plans
+
+    ## TBD
+
+
+# Programs
+
+    ## TBD
+
+
+# Roles
+
+    ## TBD
+
+
+# Teams
+
+    def get_teams(self, teamId=None):
+        """
+        Returns ```teams```.
+        """
+
+        url = f"/teams"
+        if (teamId):
+            url += f"/{teamId}"
+
+        return self._single(url)
+
+    def get_team_members(self, teamId):
+        """
+        Returns members for particular ```team```.
+        """
+
+        url = f"/teams/{teamId}/members"
+        return self._single(url)
+
+# Team - Links
+
+## TBD
+
+
+# Team - Memberships
+
+    def get_team_memberships(self, membershipId):
+        """
+        Returns members for particular ```team membershipId```.
+        """
+
+        url = f"/team-memberships/{membershipId}"
+        return self._single(url)
+
+    def get_account_team_membership(self, teamId, accountId):
+        """
+        Returns the active team membership of a specific ```accountId``` in a specific  ```teamId```.
+        """
+
+        url = f"/teams/{teamId}/members/{accountId}"
+        return self._list(url)
+
+    def get_account_team_memberships(self, teamId, accountId):
+        """
+        Returns all team memberships of a specific ```accountId``` in a specific  ```teamId```.
+        """
+
+        url = f"/teams/{teamId}/members/{accountId}/memberships"
+        return self._list(url)
+
+# Periods
+
+    def get_periods(self, dateFrom, dateTo):
         """
         Retrieve periods as a list.
         """
         params = {
-            "from": self._resolve_date(date_from).isoformat(),
-            "to": self._resolve_date(date_to).isoformat()
+            "from": self._resolve_date(dateFrom).isoformat(),
+            "to": self._resolve_date(dateTo).isoformat()
             }
 
-        return self._list("/periods", **params)
+        return self._single("/periods", **params)
+
+# Timesheet Approvals
+
+    def get_timesheet_approvals_waiting(self):
+        url = f"/timesheet-approvals/waiting"
+        params = { "limit": self.MAX_RESULTS }
+        return self._list(url, **params)
+
+    def get_timesheet_approvals(self, dateFrom=None, dateTo=None, userId=None, teamId=None):
+        params = {}
+        if dateFrom:
+            params["from"] = self._resolve_date(dateFrom).isoformat()
+        if dateTo:
+            params["to"] = self._resolve_date(dateTo).isoformat()
+
+        url = f"/timesheet-approvals"
+        if userId:
+            url += f"/user/{userId}"
+        elif teamId:
+            url += f"/team/{teamId}"
+        return self._single(url, **params)
+
+# User Schedule
+
+    def get_user_schedule(self, dateFrom, dateTo, userId=None):
+        """
+        Returns user schedule inside ```dateFrom``` and ```dateTo```,
+        for particular ```userId```.
+        """
+        params = {
+            "from": self._resolve_date(dateFrom).isoformat(),
+            "to": self._resolve_date(dateTo).isoformat(),
+            "limit": self.MAX_RESULTS
+            }
+        url = "/user-schedule"
+        if userId:
+            url += f"/{userId}"
+        return self._list(url, **params)
+
+
+# Work Attributes
 
     def get_work_attributes(self):
         """
-        Returns worklog attributes inside ```date_from``` and ```date_to```,
+        Returns worklog attributes inside ```dateFrom``` and ```dateTo```,
         for particular ```user```, adding work attributes if ```add_work_attributes```.
         """
         return { x["key"]: x for x in self._list("/work-attributes") }
@@ -130,78 +260,47 @@ class Tempo(object):
 
             yield worklog
 
-    def get_all_worklogs(self, date_from, date_to):
-        date_from = self._resolve_date(date_from).isoformat()
-        date_to = self._resolve_date(date_to).isoformat()
+# Workload Schemes
+
+## TBD
+
+# Holiday Schemes
+
+    def get_holiday_schemes(self, holidaySchemeId=None):
+        url = f"/holiday-schemes"
+        if holidaySchemeId:
+            url += f"/{holidaySchemeId}/holidays"
+        return self._list(url)
+
+# Worklogs
+
+    def get_worklogs(self, dateFrom, dateTo, worklogId=None, jiraWorklogId=None, jiraFilterId=None, accountKey=None, projectKey=None, teamId=None, accountId=None, issue=None):
+        """
+        Returns worklogs inside ```dateFrom``` and ```dateTo```,
+        for particular parameter: ```worklogId```, ```jiraWorklogId```,  ```jiraFilterId```, ```accountKey```, ```projectKey```, ```teamId```, ```accountId```, ```issue```.
+        """
+
+        params = {
+            "from": self._resolve_date(dateFrom).isoformat(),
+            "to": self._resolve_date(dateTo).isoformat(),
+            "limit": self.MAX_RESULTS
+            }
         url = f"/worklogs"
-        params = { "from": date_from, "to": date_to, "limit": self.MAX_RESULTS }
-        return self._list(url, **params)
+        if worklogId:
+            url += f"/{worklogId}"
+        elif jiraWorklogId:
+            url += f"/jira/{jiraWorklogId}"
+        elif jiraFilterId:
+            url += f"/jira/filter/{jiraFilterId}"
+        elif accountKey:
+            url += f"/account/{accountKey}"
+        elif projectKey:
+            url += f"/project/{projectKey}"
+        elif teamId:
+            url += f"/team/{teamId}"
+        elif accountId:
+            url += f"/user/{accountId}"
+        elif issue:
+            url += f"/issue/{issue}"
 
-    def get_user_worklogs(self, date_from, date_to, userid):
-        """
-        Returns worklogs inside ```date_from``` and ```date_to```,
-        for particular ```user```.
-        """
-
-        date_from = self._resolve_date(date_from).isoformat()
-        date_to = self._resolve_date(date_to).isoformat()
-        url = f"/worklogs/user/{userid}"
-        params = { "from": date_from, "to": date_to, "limit": self.MAX_RESULTS }
-        return self._list(url, **params)
-
-    def get_team_worklogs(self, date_from, date_to, teamid):
-        """
-        Returns worklogs inside ```date_from``` and ```date_to```,
-        for particular ```team```.
-        """
-
-        date_from = self._resolve_date(date_from).isoformat()
-        date_to = self._resolve_date(date_to).isoformat()
-        url = f"/worklogs/team/{teamid}"
-        params = { "from": date_from, "to": date_to, "limit": self.MAX_RESULTS }
-        return self._list(url, **params)
-
-    def get_team_members(self, teamid):
-        """
-        Returns members for particular ```team```.
-        """
-
-        url = f"/teams/{teamid}/members"
-        return self._list(url)
-
-    def get_team_memberships(self, membershipid):
-        """
-        Returns members for particular ```team membership id```.
-        """
-
-        url = f"/team-memberships/{membershipid}"
-        return self._single(url)
-
-    def get_account_team_membership(self, teamid, accountid):
-        """
-        Returns the active team membership of a specific ```accountid``` in a specific  ```teamid```.
-        """
-
-        url = f"/teams/{teamid}/members/{accountid}"
-        return self._single(url)
-
-    def get_account_team_memberships(self, teamid, accountid):
-        """
-        Returns all team memberships of a specific ```accountid``` in a specific  ```teamid```.
-        """
-
-        url = f"/teams/{teamid}/members/{accountid}/memberships"
-        return self._list(url)
-
-    def get_user_schedule(self, date_from, date_to, user=None):
-        """
-        Returns user schedule inside ```date_from``` and ```date_to```,
-        for particular ```user```.
-        """
-        date_from = self._resolve_date(date_from).isoformat()
-        date_to = self._resolve_date(date_to).isoformat()
-        url = "/user-schedule"
-        if user is not None:
-            url += "/{}".format(user)
-        params = { "from": date_from, "to": date_to, "limit": self.MAX_RESULTS }
         return self._list(url, **params)
