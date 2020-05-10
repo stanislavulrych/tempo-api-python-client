@@ -107,12 +107,32 @@ class Tempo(object):
 
 # Customers
 
-    ## TBD
+    def get_customers(self, key=None):
+
+        """
+        Retrieve all customers or customer with ```key```.
+        """
+
+        url = "/customers"
+        if key:
+            url += f"/{key}"
+        return self._list(url)
 
 
 # Plans
 
-    ## TBD
+    def get_plans(self, id=None, userId=None):
+
+        """
+        Retrieve plans or plan with ```id``` or plan for ```userId````.
+        """
+
+        url = "/plans"
+        if id:
+            url += f"/{id}"
+        elif userId:
+            url += f"/plans/user/{userId}"
+        return self._list(url)
 
 
 # Programs
@@ -129,7 +149,7 @@ class Tempo(object):
 
     def get_teams(self, teamId=None):
         """
-        Returns ```teams```.
+        Returns ```teams``` or the details of team ```teamId```.
         """
 
         url = f"/teams"
@@ -140,7 +160,7 @@ class Tempo(object):
 
     def get_team_members(self, teamId):
         """
-        Returns members for particular ```team```.
+        Returns members for particular ```teamId```.
         """
 
         url = f"/teams/{teamId}/members"
@@ -193,11 +213,19 @@ class Tempo(object):
 # Timesheet Approvals
 
     def get_timesheet_approvals_waiting(self):
+        """
+        Retrieve waiting timesheet approvals
+        """
+
         url = f"/timesheet-approvals/waiting"
         params = { "limit": self.MAX_RESULTS }
         return self._list(url, **params)
 
     def get_timesheet_approvals(self, dateFrom=None, dateTo=None, userId=None, teamId=None):
+        """
+        Retrieve timesheet approval between ```dateFrom``` and ```dateTo``` if specified; or for ```userId``` or ```teamId```.
+        """
+        
         params = {}
         if dateFrom:
             params["from"] = self._resolve_date(dateFrom).isoformat()
@@ -233,14 +261,13 @@ class Tempo(object):
 
     def get_work_attributes(self):
         """
-        Returns worklog attributes inside ```dateFrom``` and ```dateTo```,
-        for particular ```user```, adding work attributes if ```add_work_attributes```.
+        Returns worklog attributes.
         """
         return { x["key"]: x for x in self._list("/work-attributes") }
 
     def add_worklog_attributes(self, worklogs):
         """
-        Return worklogs with added worklog attributes, destroys worklogs.
+        Update worklog attributes in worklogs.
         """
 
         if not self.work_attributes:
@@ -262,7 +289,11 @@ class Tempo(object):
 
 # Workload Schemes
 
-## TBD
+    def get_workload_schemes(self, id=None):
+        url = f"/workload-schemes"
+        if id:
+            url += f"/{id}"
+        return self._list(url)
 
 # Holiday Schemes
 
