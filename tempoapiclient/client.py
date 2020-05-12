@@ -237,7 +237,7 @@ class Tempo(object):
             url += f"/user/{userId}"
         elif teamId:
             url += f"/team/{teamId}"
-        return self._single(url, **params)
+        return self._list(url, **params)
 
 # User Schedule
 
@@ -305,7 +305,7 @@ class Tempo(object):
 
 # Worklogs
 
-    def get_worklogs(self, dateFrom, dateTo, worklogId=None, jiraWorklogId=None, jiraFilterId=None, accountKey=None, projectKey=None, teamId=None, accountId=None, issue=None):
+    def get_worklogs(self, dateFrom, dateTo, worklogId=None, jiraWorklogId=None, jiraFilterId=None, accountKey=None, projectKey=None, teamId=None, accountId=None, issueId=None):
         """
         Returns worklogs inside ```dateFrom``` and ```dateTo```,
         for particular parameter: ```worklogId```, ```jiraWorklogId```,  ```jiraFilterId```, ```accountKey```, ```projectKey```, ```teamId```, ```accountId```, ```issue```.
@@ -331,7 +331,7 @@ class Tempo(object):
             url += f"/team/{teamId}"
         elif accountId:
             url += f"/user/{accountId}"
-        elif issue:
-            url += f"/issue/{issue}"
+        elif issueId:
+            url += f"/issue/{issueId}"
 
         return self._list(url, **params)
