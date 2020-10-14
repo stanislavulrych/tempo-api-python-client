@@ -1,11 +1,14 @@
 # tempo-api-python-client
-Python bindings for Tempo - https://tempo-io.github.io/tempo-api-docs/
+Python bindings for Tempo Rest API.
 
 This is a Tempo API client library to simplify the interaction with Tempo timesheets.
 
 Pip release is available: https://pypi.org/project/tempo-api-python-client/
 
-## Changelog
+Tempo Rest API documentation can be found at https://tempo.io/doc/timesheets/api/rest/latest/
+
+
+## Installation
 
 Install current reelase by pip
 
@@ -16,7 +19,7 @@ pip install tempo-api-python-client
 
 ## Getting Started
 
-You need an API token for communicating with tempo REST APIs. Documentation could be found at https://tempo.io/doc/timesheets/api/rest/latest/
+You need an API token for communicating with tempo REST APIs. 
 
 ```
 from tempoapiclient import client

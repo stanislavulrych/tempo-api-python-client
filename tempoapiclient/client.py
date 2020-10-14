@@ -13,23 +13,19 @@
 
 from __future__ import unicode_literals
 
-import requests
 from datetime import date, datetime
 
+from .rest_client import RestAPIClient
 
-class Tempo(object):
+class Tempo(RestAPIClient):
     """
     Basic Client for accessing Tempo Rest API as provided by api.tempo.io.
     """
 
-    # Maximum number of result in single response (pagination)
-    # NOTE: maximum number allowed by API is 1000
-    MAX_RESULTS = 1000
-
-    def __init__(self, auth_token, base_url="https://api.tempo.io/core/3"):
-        self._token = auth_token
-        self.BASE_URL = base_url
-        self.work_attributes = None
+    def __init__(self, auth_token, base_url="https://api.tempo.io/core/3", limit=1000):
+        self._limit = limit   # default limit for pagination (1000 is maximum for Tempo API)
+        self._base_url = base_url
+        super().__init__(auth_token=auth_token)
 
     def _resolve_date(self, value):
         if isinstance(value, datetime):
@@ -37,58 +33,44 @@ class Tempo(object):
         if isinstance(value, date):
             return value
     
-        parsed = date.fromisoformat(value)
+        parsed = datetime.strptime(value,  r"%Y-%m-%d").date()
+
         return parsed
 
-    def _list(self, url, **params):
-        # Resolve parameters
-        url = self.BASE_URL + url
-        headers = { "Authorization": "Bearer {}".format(self._token) }
-        params = params.copy()
+    def get(self, path, data=None, flags=None, params=None, headers=None, not_json_response=None, trailing=None):
+        path_absolute = super().url_joiner(self._base_url, path)
+        resp = super().get(path_absolute, data=data, flags=flags, params=params, headers=headers, not_json_response=not_json_response, trailing=trailing)
+        
+        # single item returned
+        if 'results' not in resp:
+            return resp
 
-        # Return paginated results
-        processed = 0
-        while True:
-            params["offset"] = processed
-            response = requests.get(url, params=params, headers=headers)
-            response.raise_for_status()
-            data = response.json()
-            metadata = data.get("metadata", {})
-            results = data.get("results", [])
-            processed += metadata.get("count", 0)
-            for result in results:
-                yield result
-            if "next" not in metadata or metadata.get("count", 0) < metadata.get("limit", 0):
-                break
+        # multiple items
+        results = resp['results']
 
-    def _single(self, url, **params):
-        # Resolve parameters
-        url = self.BASE_URL + url
-        headers = { "Authorization": "Bearer {}".format(self._token) }
-
-        # Return a single result
-        response = requests.get(url, params=params, headers=headers)
-        response.raise_for_status()
-        data = response.json()
-        return data
-
+        # handle all results paginated
+        while 'next' in resp.get('metadata'):
+            resp = super().get(resp.get('metadata').get('next'))
+            results.extend(resp['results'])
+        
+        return results
 
 # Accounts
 
     def get_accounts(self):
         """
-        Retrieve existing accounts as a dictionary.
+        Retrieves existing accounts.
         """
-        return { x["key"]: x for x in self._list("/accounts") }
+        return self.get("/accounts")
 
 
 # Account - Categories
 
     def get_account_categories(self):
         """
-        Retrieve existing account categories as a dictionary.
+        Retrieves existing account categories.
         """
-        return { x["key"]: x for x in self._list("/account-categories") }
+        return self.get("/account-categories")
 
 
 # Account - Category - Types
@@ -96,9 +78,9 @@ class Tempo(object):
     def get_account_category_types(self):
 
         """
-        Retrieve all periods for a given date range as a list.
+        Retrieves all periods for a given date range as a list.
         """
-        return self._list("/account-category-types")
+        return self.get("/account-category-types")
 
 # Account - Links
 
@@ -110,29 +92,50 @@ class Tempo(object):
     def get_customers(self, key=None):
 
         """
-        Retrieve all customers or customer with ```key```.
+        Retrieves all customers or customer.
+        :param key: Return customer for ```key```.
         """
 
         url = "/customers"
         if key:
             url += f"/{key}"
-        return self._list(url)
+        return self.get(url)
 
 
 # Plans
 
-    def get_plans(self, id=None, userId=None):
+    def get_plans(self, dateFrom, dateTo, assigneeType=None, planItemType=None, updatedFrom=None, id=None, userId=None):
 
         """
-        Retrieve plans or plan with ```id``` or plan for ```userId````.
+        Retrieves plans or plan.
+        :param dateFrom: 
+        :param dateTo:
+        :param assigneeType:
+        :param planItemType:
+        :param updatedFrom:
+        :param id: Plan id
+        :param userId: ```AccountId``` for user in Tempo
         """
-
+        
+        params = {
+            "from": self._resolve_date(dateFrom).isoformat(),
+            "to": self._resolve_date(dateTo).isoformat(),
+            "offset": 0,
+            "limit": self._limit
+        }
+        if assigneeType:
+            params['assigneeType'] = assigneeType
+        if planItemType:
+            params['planItemType'] = planItemType
+        if updatedFrom:
+            params['updatedFrom'] = self._resolve_date(updatedFrom).isoformat()
+        
         url = "/plans"
         if id:
             url += f"/{id}"
         elif userId:
             url += f"/plans/user/{userId}"
-        return self._list(url)
+        return self.get(url, params=params)
 
 
 # Programs
@@ -149,22 +152,24 @@ class Tempo(object):
 
     def get_teams(self, teamId=None):
         """
-        Returns ```teams``` or the details of team ```teamId```.
+        Returns teams information.
+        :param teamId: Returns details for team ```teamId```.
         """
 
         url = f"/teams"
         if (teamId):
             url += f"/{teamId}"
 
-        return self._single(url)
+        return self.get(url)
 
     def get_team_members(self, teamId):
         """
-        Returns members for particular ```teamId```.
+        Returns members for particular team.
+        :param teamId: teamId
         """
 
         url = f"/teams/{teamId}/members"
-        return self._single(url)
+        return self.get(url)
 
 # Team - Links
 
@@ -175,40 +180,46 @@ class Tempo(object):
 
     def get_team_memberships(self, membershipId):
         """
-        Returns members for particular ```team membershipId```.
+        Returns members.
+        :param membershipId:
         """
 
         url = f"/team-memberships/{membershipId}"
-        return self._single(url)
+        return self.get(url)
 
     def get_account_team_membership(self, teamId, accountId):
         """
-        Returns the active team membership of a specific ```accountId``` in a specific  ```teamId```.
+        Returns the active team membership.
+        :param accountId:
+        :param teamId:
         """
 
-        url = f"/teams/{teamId}/members/{accountId}"
-        return self._list(url)
+        return self.get(f"/teams/{teamId}/members/{accountId}")
 
     def get_account_team_memberships(self, teamId, accountId):
         """
-        Returns all team memberships of a specific ```accountId``` in a specific  ```teamId```.
+        Returns all team memberships.
+        :param accountId:
+        :param teamId:
         """
 
-        url = f"/teams/{teamId}/members/{accountId}/memberships"
-        return self._list(url)
+        return self.get(f"/teams/{teamId}/members/{accountId}/memberships")
 
 # Periods
 
     def get_periods(self, dateFrom, dateTo):
         """
-        Retrieve periods as a list.
+        Retrieves periods.
+        :param dateFrom:
+        :param dateTo:
         """
+
         params = {
             "from": self._resolve_date(dateFrom).isoformat(),
             "to": self._resolve_date(dateTo).isoformat()
             }
 
-        return self._single("/periods", **params)
+        return self.get("/periods", params=params)
 
 # Timesheet Approvals
 
@@ -217,13 +228,15 @@ class Tempo(object):
         Retrieve waiting timesheet approvals
         """
 
-        url = f"/timesheet-approvals/waiting"
-        params = { "limit": self.MAX_RESULTS }
-        return self._list(url, **params)
+        return self.get(f"/timesheet-approvals/waiting")
 
     def get_timesheet_approvals(self, dateFrom=None, dateTo=None, userId=None, teamId=None):
         """
-        Retrieve timesheet approval between ```dateFrom``` and ```dateTo``` if specified; or for ```userId``` or ```teamId```.
+        Retrieves timesheet approvals.
+        :param dateFrom:
+        :param dateTo:
+        :param userId:
+        :param teamId:
         """
         
         params = {}
@@ -237,24 +250,26 @@ class Tempo(object):
             url += f"/user/{userId}"
         elif teamId:
             url += f"/team/{teamId}"
-        return self._list(url, **params)
+        return self.get(url, params)
 
 # User Schedule
 
     def get_user_schedule(self, dateFrom, dateTo, userId=None):
         """
-        Returns user schedule inside ```dateFrom``` and ```dateTo```,
-        for particular ```userId```.
+        Returns user schedule.
+        :param dateFrom:
+        :param dateTo:
+        :param userId:
         """
+
         params = {
             "from": self._resolve_date(dateFrom).isoformat(),
-            "to": self._resolve_date(dateTo).isoformat(),
-            "limit": self.MAX_RESULTS
+            "to": self._resolve_date(dateTo).isoformat()
             }
         url = "/user-schedule"
         if userId:
             url += f"/{userId}"
-        return self._list(url, **params)
+        return self.get(url, params=params)
 
 
 # Work Attributes
@@ -263,37 +278,17 @@ class Tempo(object):
         """
         Returns worklog attributes.
         """
-        return { x["key"]: x for x in self._list("/work-attributes") }
 
-    def add_worklog_attributes(self, worklogs):
-        """
-        Update worklog attributes in worklogs.
-        """
+        return self.get("/work-attributes")
 
-        if not self.work_attributes:
-            self.work_attributes = self.get_work_attributes()
-
-        for worklog in worklogs:
-            attributes = (worklog.get("attributes") or {}).get("values") or {}
-            resolved_attributes = {}
-
-            for attribute in attributes:
-                key = attribute.get("key")
-                if key:
-                    name = self.work_attributes.get(key, {}).get("name", key)
-                    resolved_attributes[name] = attribute["value"]
-
-            worklog["attributes"] = resolved_attributes
-
-            yield worklog
-
+    
 # Workload Schemes
 
     def get_workload_schemes(self, id=None):
         url = f"/workload-schemes"
         if id:
             url += f"/{id}"
-        return self._list(url)
+        return self.get(url)
 
 # Holiday Schemes
 
@@ -301,20 +296,30 @@ class Tempo(object):
         url = f"/holiday-schemes"
         if holidaySchemeId:
             url += f"/{holidaySchemeId}/holidays"
-        return self._list(url)
+        return self.get(url)
 
 # Worklogs
 
     def get_worklogs(self, dateFrom, dateTo, worklogId=None, jiraWorklogId=None, jiraFilterId=None, accountKey=None, projectKey=None, teamId=None, accountId=None, issueId=None):
         """
-        Returns worklogs inside ```dateFrom``` and ```dateTo```,
-        for particular parameter: ```worklogId```, ```jiraWorklogId```,  ```jiraFilterId```, ```accountKey```, ```projectKey```, ```teamId```, ```accountId```, ```issue```.
+        Returns worklogs for particular parameters.
+        :param dateFrom:
+        :param dateTo:
+        :param worklogId:
+        :param jiraWorklogId:
+        :param jiraFilterId:
+        :param accountKey:
+        :param projectKey:
+        :param teamId:
+        :param accountId:
+        :param issue:
         """
 
         params = {
             "from": self._resolve_date(dateFrom).isoformat(),
             "to": self._resolve_date(dateTo).isoformat(),
-            "limit": self.MAX_RESULTS
+            "offset": 0,
+            "limit": self._limit
             }
         url = f"/worklogs"
         if worklogId:
@@ -334,4 +339,4 @@ class Tempo(object):
         elif issueId:
             url += f"/issue/{issueId}"
 
-        return self._list(url, **params)
+        return self.get(url, params=params)
