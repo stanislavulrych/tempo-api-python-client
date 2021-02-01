@@ -5,7 +5,7 @@ This is a Tempo API client library to simplify the interaction with Tempo timesh
 
 Pip release is available: https://pypi.org/project/tempo-api-python-client/
 
-Tempo Rest API documentation can be found at https://tempo.io/doc/timesheets/api/rest/latest/
+Tempo Rest API documentation can be found at https://tempo-io.github.io/tempo-api-docs/
 
 
 ## Installation
