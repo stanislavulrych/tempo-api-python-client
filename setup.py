@@ -5,10 +5,10 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="tempo-api-python-client",
-    version="0.4.0",
+    version="0.4.1",
     author="Stanislav Ulrych",
     author_email="stanislav.ulrych@gmail.com",
-    description="Python bindings for Tempo (https://tempo-io.github.io/tempo-api-docs/)",
+    description="Python bindings for Tempo (https://apidocs.tempo.io/)",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/stanislavulrych/tempo-api-python-client",
