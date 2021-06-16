@@ -55,6 +55,11 @@ class Tempo(RestAPIClient):
         
         return results
 
+
+    def post(self, path, data=None, json=None, headers=None, files=None, params=None, trailing=None):
+        path_absolute = super().url_joiner(self._base_url, path)
+        return super().post(path_absolute, data=data, json=json, headers=headers, files=files, params=params, trailing=trailing)
+ 
 # Accounts
 
     def get_accounts(self):
@@ -345,3 +350,28 @@ class Tempo(RestAPIClient):
             url += f"/issue/{issueId}"
 
         return self.get(url, params=params)
+
+    def create_worklogs(self, issueKey, timeSpentSeconds, startDate, startTime, description, authorAccountId, attributes):
+        """
+        Create a worklog for particular parameters.
+        :param issueKey:
+        :param timeSpentSeconds:
+        :param startDate:
+        :param startTime:
+        :param description:
+        :param authorAccountId:
+        :param attributes:
+        """
+        data = {
+            "issueKey": issueKey,
+            "timeSpentSeconds": timeSpentSeconds,
+            "startDate": self._resolve_date(startDate).isoformat(),
+            "startTime": startTime,
+            "description": description,
+            "authorAccountId": authorAccountId,
+            "attributes": attributes
+        }
+
+        url = f"/worklogs"
+
+        return self.post(url, data=data)
