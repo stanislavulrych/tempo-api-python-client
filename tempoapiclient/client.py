@@ -250,7 +250,7 @@ class Tempo(RestAPIClient):
             url += f"/user/{userId}"
         elif teamId:
             url += f"/team/{teamId}"
-        return self.get(url, params)
+        return self.get(url, params=params)
 
 # User Schedule
 
