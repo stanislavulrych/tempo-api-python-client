@@ -1,6 +1,7 @@
 # coding=utf-8
 import logging
 import requests
+from requests.exceptions import HTTPError
 from json import dumps
 from six.moves.urllib.parse import urlencode
 
@@ -36,16 +37,22 @@ class RestAPIClient(object):
         """
         self._session.headers.update({key: value})
 
-    @staticmethod
-    def _response_handler(response):
+    def _response_handler(self, response):
+
+        if self._advanced_mode:
+            return response
+        
         try:
+            # If the response was successful, no Exception will be raised
+            response.raise_for_status()
             return response.json()
-        except ValueError:
-            log.debug('Received response with no content')
-            return None
-        except Exception as e:
-            log.error(e)
-            return None
+
+        except HTTPError as http_err:
+            log.error(f'HTTP error occurred: {http_err.response.text}')
+            raise SystemExit(http_err)
+        except Exception as err:
+            log.error(err)
+            raise SystemExit(err)
 
     @staticmethod
     def url_joiner(url, path, trailing=None):
@@ -59,7 +66,7 @@ class RestAPIClient(object):
     def close(self):
         return self._session.close()
 
-    def request(self, method='GET', path='/', data=None, json=None, flags=None, params=None, headers=None,
+    def _request(self, method='GET', path='/', data=None, json=None, flags=None, params=None, headers=None,
                 files=None, trailing=None):
         """
 
@@ -101,11 +108,7 @@ class RestAPIClient(object):
         )
         response.encoding = 'utf-8'
 
-        if self._advanced_mode:
-            return response
-
         log.debug("HTTP: {} {} -> {} {}".format(method, path, response.status_code, response.reason))
-        response.raise_for_status()
         return response
 
     def get(self, path, data=None, flags=None, params=None, headers=None, not_json_response=None, trailing=None):
@@ -121,33 +124,20 @@ class RestAPIClient(object):
         :return:
         """
         
-        response = self.request('GET', path=path, flags=flags, params=params, data=data, headers=headers,
+        response = self._request('GET', path=path, flags=flags, params=params, data=data, headers=headers,
                                 trailing=trailing)
-        if self._advanced_mode:
-            return response
-        if not_json_response:
-            return response.content
-        else:
-            if not response.text:
-                return None
-            try:
-                return response.json()
-            except Exception as e:
-                log.error(e)
-                return response.text
+
+        return self._response_handler(response)
 
     def post(self, path, data=None, json=None, headers=None, files=None, params=None, trailing=None):
-        response = self.request('POST', path=path, data=data, json=json, headers=headers, files=files, params=params,
+        response = self._request('POST', path=path, data=data, json=json, headers=headers, files=files, params=params,
                                 trailing=trailing)
-        if self._advanced_mode:
-            return response
+        
         return self._response_handler(response)
 
     def put(self, path, data=None, headers=None, files=None, trailing=None, params=None):
-        response = self.request('PUT', path=path, data=data, headers=headers, files=files, params=params,
+        response = self._request('PUT', path=path, data=data, headers=headers, files=files, params=params,
                                 trailing=trailing)
-        if self._advanced_mode:
-            return response
         return self._response_handler(response)
 
 
@@ -157,7 +147,6 @@ class RestAPIClient(object):
         :rtype: dict
         :return: Empty dictionary to have consistent interface.
         """
-        response = self.request('DELETE', path=path, data=data, headers=headers, params=params, trailing=trailing)
-        if self.advanced_mode:
-            return response
+        response = self._request('DELETE', path=path, data=data, headers=headers, params=params, trailing=trailing)
+        
         return self._response_handler(response)
