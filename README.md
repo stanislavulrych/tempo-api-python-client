@@ -10,7 +10,7 @@ Tempo Rest API documentation can be found at https://apidocs.tempo.io/
 
 ## Installation
 
-Install current reelase by pip
+Install current release by pip
 
 ```
 pip install tempo-api-python-client
