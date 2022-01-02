@@ -17,6 +17,7 @@ from datetime import date, datetime
 
 from .rest_client import RestAPIClient
 
+
 class Tempo(RestAPIClient):
     """
     Basic Client for accessing Tempo Rest API as provided by api.tempo.io.
@@ -32,15 +33,16 @@ class Tempo(RestAPIClient):
             return value.date()
         if isinstance(value, date):
             return value
-    
+
         parsed = datetime.strptime(value,  r"%Y-%m-%d").date()
 
         return parsed
 
     def get(self, path, data=None, flags=None, params=None, headers=None, not_json_response=None, trailing=None):
         path_absolute = super().url_joiner(self._base_url, path)
-        resp = super().get(path_absolute, data=data, flags=flags, params=params, headers=headers, not_json_response=not_json_response, trailing=trailing)
-        
+        resp = super().get(path_absolute, data=data, flags=flags, params=params, headers=headers,
+                           not_json_response=not_json_response, trailing=trailing)
+
         # single item returned
         if 'results' not in resp:
             return resp
@@ -52,7 +54,7 @@ class Tempo(RestAPIClient):
         while 'next' in resp.get('metadata'):
             resp = super().get(resp.get('metadata').get('next'))
             results.extend(resp['results'])
-        
+
         return results
 
 # Accounts
@@ -63,34 +65,25 @@ class Tempo(RestAPIClient):
         """
         return self.get("/accounts")
 
-
-# Account - Categories
-
+    # Account - Categories
     def get_account_categories(self):
         """
         Retrieves existing account categories.
         """
         return self.get("/account-categories")
 
-
-# Account - Category - Types
-
+    # Account - Category - Types
     def get_account_category_types(self):
-
         """
         Retrieves all periods for a given date range as a list.
         """
         return self.get("/account-category-types")
 
-# Account - Links
-
+    # Account - Links
     ## TBD
 
-
-# Customers
-
+    # Customers
     def get_customers(self, key=None):
-
         """
         Retrieves all customers or customer.
         :param key: Return customer for ```key```.
@@ -101,14 +94,11 @@ class Tempo(RestAPIClient):
             url += f"/{key}"
         return self.get(url)
 
-
-# Plans
-
+    # Plans
     def get_plans(self, dateFrom, dateTo, assigneeType=None, planItemType=None, updatedFrom=None, id=None, userId=None):
-
         """
         Retrieves plans or plan.
-        :param dateFrom: 
+        :param dateFrom:
         :param dateTo:
         :param assigneeType:
         :param planItemType:
@@ -116,7 +106,6 @@ class Tempo(RestAPIClient):
         :param id: Plan id
         :param userId: ```AccountId``` for user in Tempo
         """
-        
         params = {
             "from": self._resolve_date(dateFrom).isoformat(),
             "to": self._resolve_date(dateTo).isoformat(),
@@ -129,7 +118,7 @@ class Tempo(RestAPIClient):
             params['planItemType'] = planItemType
         if updatedFrom:
             params['updatedFrom'] = self._resolve_date(updatedFrom).isoformat()
-        
+
         url = "/plans"
         if id:
             url += f"/{id}"
@@ -137,19 +126,13 @@ class Tempo(RestAPIClient):
             url += f"/plans/user/{userId}"
         return self.get(url, params=params)
 
-
-# Programs
-
+    # Programs
     ## TBD
 
-
-# Roles
-
+    # Roles
     ## TBD
 
-
-# Teams
-
+    # Teams
     def get_teams(self, teamId=None):
         """
         Returns teams information.
@@ -171,13 +154,10 @@ class Tempo(RestAPIClient):
         url = f"/teams/{teamId}/members"
         return self.get(url)
 
-# Team - Links
+    # Team - Links
+    ## TBD
 
-## TBD
-
-
-# Team - Memberships
-
+    # Team - Memberships
     def get_team_memberships(self, membershipId):
         """
         Returns members.
@@ -238,7 +218,6 @@ class Tempo(RestAPIClient):
         :param userId:
         :param teamId:
         """
-        
         params = {}
         if dateFrom:
             params["from"] = self._resolve_date(dateFrom).isoformat()
@@ -252,8 +231,7 @@ class Tempo(RestAPIClient):
             url += f"/team/{teamId}"
         return self.get(url, params=params)
 
-# User Schedule
-
+    # User Schedule
     def get_user_schedule(self, dateFrom, dateTo, userId=None):
         """
         Returns user schedule.
@@ -271,19 +249,14 @@ class Tempo(RestAPIClient):
             url += f"/{userId}"
         return self.get(url, params=params)
 
-
-# Work Attributes
-
+    # Work Attributes
     def get_work_attributes(self):
         """
         Returns worklog attributes.
         """
-
         return self.get("/work-attributes")
 
-    
-# Workload Schemes
-
+    # Workload Schemes
     def get_workload_schemes(self, id=None):
         url = f"/workload-schemes"
         if id:
@@ -300,7 +273,8 @@ class Tempo(RestAPIClient):
 
 # Worklogs
 
-    def get_worklogs(self, dateFrom, dateTo, updatedFrom=None, worklogId=None, jiraWorklogId=None, jiraFilterId=None, accountKey=None, projectKey=None, teamId=None, accountId=None, issueId=None):
+    def get_worklogs(self, dateFrom, dateTo, updatedFrom=None, worklogId=None, jiraWorklogId=None, jiraFilterId=None,
+                     accountKey=None, projectKey=None, teamId=None, accountId=None, issueId=None):
         """
         Returns worklogs for particular parameters.
         :param dateFrom:

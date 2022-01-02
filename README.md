@@ -40,6 +40,12 @@ for i in worklogs:
 There are also functions to retrieve `user` and `team`-specific worklogs.
 
 
+## Code Format
+
+- Flake8: `flake8 --max-line-length=120 tempoapiclient/*`
+
+- Pylint: `pylint --max-line-length=120 tempoapiclient`
+
 ## Contributing
 
 Contribution is welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for more details.

@@ -7,12 +7,12 @@ from six.moves.urllib.parse import urlencode
 
 log = logging.getLogger()
 
+
 class RestAPIClient(object):
     default_headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
     response = None
 
     def __init__(self, url="", auth_token=None, timeout=None, verify_ssl=None, proxies=None, advanced_mode=None):
-        
         self._url = url
         self._auth_token = auth_token
         self._timeout = timeout
@@ -21,7 +21,7 @@ class RestAPIClient(object):
         self._advanced_mode = advanced_mode
         self._session = requests.Session()
         self._update_header("Authorization", "Bearer {}".format(auth_token))
-        
+
     def __enter__(self):
         return self
 
@@ -41,7 +41,7 @@ class RestAPIClient(object):
 
         if self._advanced_mode:
             return response
-        
+
         try:
             # If the response was successful, no Exception will be raised
             response.raise_for_status()
@@ -57,7 +57,7 @@ class RestAPIClient(object):
     @staticmethod
     def url_joiner(url, path, trailing=None):
         url_link = path
-        if url:    
+        if url:
             url_link = '/'.join(s.strip('/') for s in [url, path])
         if trailing:
             url_link += '/'
@@ -67,7 +67,7 @@ class RestAPIClient(object):
         return self._session.close()
 
     def _request(self, method='GET', path='/', data=None, json=None, flags=None, params=None, headers=None,
-                files=None, trailing=None):
+                 files=None, trailing=None):
         """
 
         :param method:
@@ -92,7 +92,6 @@ class RestAPIClient(object):
         if files is None:
             data = None if not data else dumps(data)
             json_dump = None if not json else dumps(json)
-        
 
         headers = headers or self.default_headers
         response = self._session.request(
@@ -123,23 +122,20 @@ class RestAPIClient(object):
         :param trailing: OPTIONAL: for wrap slash symbol in the end of string
         :return:
         """
-        
         response = self._request('GET', path=path, flags=flags, params=params, data=data, headers=headers,
-                                trailing=trailing)
+                                 trailing=trailing)
 
         return self._response_handler(response)
 
     def post(self, path, data=None, json=None, headers=None, files=None, params=None, trailing=None):
         response = self._request('POST', path=path, data=data, json=json, headers=headers, files=files, params=params,
-                                trailing=trailing)
-        
+                                 trailing=trailing)
         return self._response_handler(response)
 
     def put(self, path, data=None, headers=None, files=None, trailing=None, params=None):
         response = self._request('PUT', path=path, data=data, headers=headers, files=files, params=params,
-                                trailing=trailing)
+                                 trailing=trailing)
         return self._response_handler(response)
-
 
     def delete(self, path, data=None, headers=None, params=None, trailing=None):
         """
@@ -148,5 +144,4 @@ class RestAPIClient(object):
         :return: Empty dictionary to have consistent interface.
         """
         response = self._request('DELETE', path=path, data=data, headers=headers, params=params, trailing=trailing)
-        
         return self._response_handler(response)
