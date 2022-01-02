@@ -6,12 +6,13 @@ from tempoapiclient import client
 
 # please set TEMPO_AUTH_TOKEN to environment before running this test
 
+
 class TestClient(TestCase):
 
     def setUp(self):
         self.tempo = client.Tempo(auth_token=os.environ.get('TEMPO_AUTH_TOKEN'))
-        self.dateFrom="2020-09-01"
-        self.dateTo="2020-10-01"
+        self.dateFrom = "2020-09-01"
+        self.dateTo = "2020-10-01"
     
     def test_client_creation(self):
         self.assertTrue(isinstance(self.tempo, client.Tempo))
@@ -52,8 +53,11 @@ class TestClient(TestCase):
         print("get_teams: ", len(l))
 
     def test_get_team_members(self):
-        l = self.tempo.get_team_members(teamId=1)
-        print("get_team_members: ", len(l))
+        team_id = [int(i['id']) for i in self.tempo.get_teams()][0]
+        team_members = self.tempo.get_team_members(teamId=team_id)
+        self.assertIsInstance(team_members, list)
+        self.assertIsInstance(team_members[0], dict)
+        self.assertIsInstance(team_members[0]['member'], dict)
 
     #def test_get_team_memberships(self):
         # l = self.tempo.get_team_memberships(membershipId=)
@@ -69,6 +73,7 @@ class TestClient(TestCase):
 
     def tearDown(self):
         self.tempo.close()
+
 
 if __name__ == "__main__":
     main()
