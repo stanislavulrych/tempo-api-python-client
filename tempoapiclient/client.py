@@ -265,11 +265,22 @@ class Tempo(RestAPIClient):
 
 # Holiday Schemes
 
-    def get_holiday_schemes(self, holidaySchemeId=None):
+    def get_holiday_schemes(self, holidaySchemeId=None, year=None):
+        """
+        Retrieve holidays for an existing holiday scheme.
+        :param holidaySchemeId:
+        :param year:
+        """
         url = f"/holiday-schemes"
         if holidaySchemeId:
             url += f"/{holidaySchemeId}/holidays"
-        return self.get(url)
+
+        params = {}
+
+        if year:
+            params["year"] = year
+
+        return self.get(url, params=params)
 
 # Worklogs
 
