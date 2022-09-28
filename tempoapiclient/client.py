@@ -57,6 +57,10 @@ class Tempo(RestAPIClient):
 
         return results
 
+    def post(self, path, data=None, params=None, headers=None, not_json_response=None, trailing=None):
+        path_absolute = super().url_joiner(self._base_url, path)
+        return super().post(path_absolute, data=data, params=params, headers=headers, trailing=trailing)
+
 # Accounts
 
     def get_accounts(self):
@@ -281,6 +285,43 @@ class Tempo(RestAPIClient):
             params["year"] = year
 
         return self.get(url, params=params)
+
+    def create_holiday_scheme(self, schemeName, schemeDescription=None):
+        """
+        Create holiday scheme
+        :param name:
+        :param description:
+        """
+
+        url = f"/holiday-schemes"
+
+        data = {"name": schemeName, "description": schemeDescription}
+
+        return self.post(url, data=data)
+
+    def create_holiday(self, holidaySchemeId, type=None, name=None, description=None, durationSeconds=None, date=None, data=None):
+        """
+        Create holiday scheme
+        :param name:
+        :param description:
+        """
+
+        # either provide data, or build from other params
+        if (not(data)):
+          data = {
+            "type": type,
+            "name": name,
+            "description": description,
+            "durationSeconds": durationSeconds,
+            "date": date
+          }
+
+        url = f"/holiday-schemes/" + str(holidaySchemeId) + "/holidays"
+
+        return self.post(url, data=data)
+
+
+
 
 # Worklogs
 
