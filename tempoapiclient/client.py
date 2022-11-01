@@ -99,16 +99,22 @@ class Tempo(RestAPIClient):
         return self.get(url)
 
     # Plans
-    def get_plans(self, dateFrom, dateTo, assigneeType=None, planItemType=None, updatedFrom=None, id=None, userId=None):
+    def get_plans(self, dateFrom, dateTo, id=None, accountId=None, accountIds=None, assigneeTypes=None, genericResourceId=None, genericResourceIds=None, planIds=None, planItemIds=None, planItemTypes=None, plannedTimeBreakdown=None, updatedFrom=None):
         """
-        Retrieves plans or plan.
+        Retrieves a list of existing Plans that matches the given search parameters.
         :param dateFrom:
         :param dateTo:
-        :param assigneeType:
-        :param planItemType:
-        :param updatedFrom:
-        :param id: Plan id
-        :param userId: ```AccountId``` for user in Tempo
+        :param id:                      ~~~ retrieve plan ~~~
+        :param accountId:               ~~~ retrieve plans for user ~~~
+        :param accountIds:              ~~~ search plans ~~~
+        :param assigneeTypes:           ~~~ search plans ~~~
+        :param genericResourceId:       ~~~ retrieve plans for generic resource ~~~
+        :param genericResourceIds:      ~~~ search plans ~~~
+        :param planIds:                 ~~~ search plans ~~~
+        :param planItemIds:             ~~~ search plans ~~~
+        :param planItemTypes:           ~~~ search plans ~~~
+        :param plannedTimeBreakdown:    ~~~ search plans ~~~
+        :param updatedFrom:             ~~~ retrieve plans for user / retrieve plans for generic resource / search plans ~~~
         """
         params = {
             "from": self._resolve_date(dateFrom).isoformat(),
@@ -116,19 +122,121 @@ class Tempo(RestAPIClient):
             "offset": 0,
             "limit": self._limit
         }
-        if assigneeType:
-            params['assigneeType'] = assigneeType
-        if planItemType:
-            params['planItemType'] = planItemType
+
+        if accountIds:
+            params['accountIds'] = accountIds
+        if assigneeTypes:
+            params['assigneeTypes'] = assigneeTypes
+        if genericResourceIds:
+            params['genericResourceIds'] = genericResourceIds
+        if planIds:
+            params['planIds'] = planIds
+        if planItemIds:
+            params['planItemIds'] = planItemIds
+        if planItemTypes:
+            params['planItemTypes'] = planItemTypes
+        if plannedTimeBreakdown:
+            params['plannedTimeBreakdown'] = plannedTimeBreakdown
         if updatedFrom:
             params['updatedFrom'] = self._resolve_date(updatedFrom).isoformat()
+        
+        url = ""
+        if id:
+            url = f"plans/{id}"
+            return self.get(url, params=params)
+        elif accountId:
+            url = f"/plans/user/{accountId}"
+            return self.get(url, params=params)
+        elif genericResourceId:
+            url = f"/plans/generic-resource/{genericResourceId}"
+            return self.get(url, params=params)
+        else:
+            url = "/plans/search"
+            return self.post(url, params=params)
+    
+    def create_plan(self, assigneeId, assigneeType, startDate, endDate, planItemId, planItemType, plannedSecondsPerDay, description=None, includeNonWorkingDays=None, planApprovalReviewerId=None, planApprovalStatus=None, recurrenceEndDate=None, rule=None):
+        """
+        :param assigneeId:
+        :param assigneeType:
+        :param startDate:
+        :param endDate:
+        :param planItemId:
+        :param planItemType:
+        :param plannedSecondsPerDay:
+        :param description:
+        :param includeNonWorkingDays:
+        :param planApprovalReviewerId:
+        :param planApprovalStatus:
+        :param recurrenceEndDate:
+        :param rule:
+        """
+        params = {
+            "assigneeId": assigneeId,
+            "assigneeType": assigneeType,
+            "startDate": self._resolve_date(startDate).isoformat(),
+            "endDate": self._resolve_date(endDate).isoformat(),
+            "planItemId": planItemId,
+            "planItemType": planItemType,
+            "plannedSecondsPerDay": plannedSecondsPerDay
+        }
+        if description:
+            params['description'] = description
+        if includeNonWorkingDays:
+            params['includeNonWorkingDays'] = includeNonWorkingDays
+        if planApprovalReviewerId:
+            params['planApprovalReviewerId'] = planApprovalReviewerId
+        if planApprovalStatus:
+            params['accounplanApprovalStatustIds'] = planApprovalStatus
+        if recurrenceEndDate:
+            params['recurrenceEndDate'] = recurrenceEndDate
+        if rule:
+            params['rule'] = rule
 
         url = "/plans"
-        if id:
-            url += f"/{id}"
-        elif userId:
-            url += f"/plans/user/{userId}"
-        return self.get(url, params=params)
+        return self.post(url, params=params)
+        
+    def update_plan(self, id, assigneeId, assigneeType, startDate, endDate, planItemId, planItemType, plannedSecondsPerDay, description=None, includeNonWorkingDays=None, planApprovalReviewerId=None, planApprovalStatus=None, recurrenceEndDate=None, rule=None):
+        """
+        :param id:
+        :param assigneeId:
+        :param assigneeType:
+        :param startDate:
+        :param endDate:
+        :param planItemId:
+        :param planItemType:
+        :param plannedSecondsPerDay:
+        :param description:
+        :param includeNonWorkingDays:
+        :param planApprovalReviewerId:
+        :param planApprovalStatus:
+        :param recurrenceEndDate:
+        :param rule:
+        """
+        params = {
+            "assigneeId": assigneeId,
+            "assigneeType": assigneeType,
+            "startDate": self._resolve_date(startDate).isoformat(),
+            "endDate": self._resolve_date(endDate).isoformat(),
+            "planItemId": planItemId,
+            "planItemType": planItemType,
+            "plannedSecondsPerDay": plannedSecondsPerDay
+        }
+        if description:
+            params['description'] = description
+        if includeNonWorkingDays:
+            params['includeNonWorkingDays'] = includeNonWorkingDays
+        if planApprovalReviewerId:
+            params['planApprovalReviewerId'] = planApprovalReviewerId
+        if planApprovalStatus:
+            params['accounplanApprovalStatustIds'] = planApprovalStatus
+        if recurrenceEndDate:
+            params['recurrenceEndDate'] = recurrenceEndDate
+        if rule:
+            params['rule'] = rule
+
+        url = f"/plans/{id}"
+        return self.put(url, params=params)
+
 
     # Programs
     ## TBD
