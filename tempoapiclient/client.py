@@ -24,7 +24,7 @@ class Tempo(RestAPIClient):
     Basic Client for accessing Tempo Rest API as provided by api.tempo.io.
     """
 
-    def __init__(self, auth_token, base_url="https://api.tempo.io/core/3", limit=1000):
+    def __init__(self, auth_token, base_url="https://api.tempo.io/4", limit=5000):
         self._limit = limit   # default limit for pagination (1000 is maximum for Tempo API)
         self._base_url = base_url
         super().__init__(auth_token=auth_token)
