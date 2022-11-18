@@ -12,6 +12,7 @@
 
 
 from __future__ import unicode_literals
+from ast import And
 
 from datetime import date, datetime
 
@@ -61,6 +62,10 @@ class Tempo(RestAPIClient):
         path_absolute = super().url_joiner(self._base_url, path)
         return super().post(path_absolute, data=data, params=params, headers=headers, trailing=trailing)
 
+    def delete(self, path, data=None, params=None, headers=None, not_json_response=None, trailing=None):
+        path_absolute = super().url_joiner(self._base_url, path)
+        return super().delete(path_absolute, headers=headers, trailing=trailing)
+
 # Accounts
 
     def get_accounts(self):
@@ -99,7 +104,7 @@ class Tempo(RestAPIClient):
         return self.get(url)
 
     # Plans
-    def get_plans(self, dateFrom, dateTo, id=None, accountId=None, accountIds=None, assigneeTypes=None, genericResourceId=None, genericResourceIds=None, planIds=None, planItemIds=None, planItemTypes=None, plannedTimeBreakdown=None, updatedFrom=None):
+    def get_plans(self, dateFrom=None, dateTo=None, id=None, accountId=None, accountIds=None, assigneeTypes=None, genericResourceId=None, genericResourceIds=None, planIds=None, planItemIds=None, planItemTypes=None, plannedTimeBreakdown=None, updatedFrom=None):
         """
         Retrieves a list of existing Plans that matches the given search parameters.
         :param dateFrom:
@@ -116,44 +121,81 @@ class Tempo(RestAPIClient):
         :param plannedTimeBreakdown:    ~~~ search plans ~~~
         :param updatedFrom:             ~~~ retrieve plans for user / retrieve plans for generic resource / search plans ~~~
         """
-        params = {
-            "from": self._resolve_date(dateFrom).isoformat(),
-            "to": self._resolve_date(dateTo).isoformat(),
-            "offset": 0,
-            "limit": self._limit
-        }
-
-        if accountIds:
-            params['accountIds'] = accountIds
-        if assigneeTypes:
-            params['assigneeTypes'] = assigneeTypes
-        if genericResourceIds:
-            params['genericResourceIds'] = genericResourceIds
-        if planIds:
-            params['planIds'] = planIds
-        if planItemIds:
-            params['planItemIds'] = planItemIds
-        if planItemTypes:
-            params['planItemTypes'] = planItemTypes
-        if plannedTimeBreakdown:
-            params['plannedTimeBreakdown'] = plannedTimeBreakdown
-        if updatedFrom:
-            params['updatedFrom'] = self._resolve_date(updatedFrom).isoformat()
         
-        url = ""
         if id:
             url = f"plans/{id}"
-            return self.get(url, params=params)
+            return self.get(url)
         elif accountId:
             url = f"/plans/user/{accountId}"
+            params = {
+                "offset": 0,
+                "limit": self._limit
+            }
+            if plannedTimeBreakdown:
+                params['plannedTimeBreakdown'] = plannedTimeBreakdown
+            if dateFrom:
+                params['from'] = self._resolve_date(dateFrom).isoformat()
+            if dateTo:
+                params['to'] = self._resolve_date(dateTo).isoformat()
+            if updatedFrom:
+                params['updatedFrom'] = self._resolve_date(updatedFrom).isoformat()
+
             return self.get(url, params=params)
         elif genericResourceId:
             url = f"/plans/generic-resource/{genericResourceId}"
+            params = {
+                "offset": 0,
+                "limit": self._limit
+            }
+            if plannedTimeBreakdown:
+                params['plannedTimeBreakdown'] = plannedTimeBreakdown
+            if dateFrom:
+                params['from'] = self._resolve_date(dateFrom).isoformat()
+            if dateTo:
+                params['to'] = self._resolve_date(dateTo).isoformat()
+            if updatedFrom:
+                params['updatedFrom'] = self._resolve_date(updatedFrom).isoformat()
+
             return self.get(url, params=params)
-        else:
+        elif dateFrom and dateTo:
+            data = {
+                "from": self._resolve_date(dateFrom).isoformat(),
+                "to": self._resolve_date(dateTo).isoformat(),
+                "offset": 0,
+                "limit": self._limit
+            }    
+            if accountIds:
+                data['accountIds'] = accountIds
+            if assigneeTypes:
+                data['assigneeTypes'] = assigneeTypes
+            if genericResourceIds:
+                data['genericResourceIds'] = genericResourceIds
+            if planIds:
+                data['planIds'] = planIds
+            if planItemIds:
+                data['planItemIds'] = planItemIds
+            if planItemTypes:
+                data['planItemTypes'] = planItemTypes
+            if plannedTimeBreakdown:
+                data['plannedTimeBreakdown'] = plannedTimeBreakdown
+            if updatedFrom:
+                data['updatedFrom'] = self._resolve_date(updatedFrom).isoformat()
             url = "/plans/search"
-            return self.post(url, params=params)
+            return self.post(url, data=data)
+        return 
     
+    def get_plan(self,id):
+        return self.get_plans(id=id)
+    
+    def get_plan_for_user(self,accountId, plannedTimeBreakdown=None, dateFrom=None, dateTo=None, updatedFrom=None):
+        return self.get_plans(accountId=accountId, plannedTimeBreakdown=plannedTimeBreakdown, dateFrom=dateFrom, dateTo=dateTo, updatedFrom=updatedFrom)
+    
+    def get_plan_for_resource(self,genericResourceId, plannedTimeBreakdown=None, dateFrom=None, dateTo=None, updatedFrom=None):
+        return self.get_plans(genericResourceId=genericResourceId, plannedTimeBreakdown=plannedTimeBreakdown, dateFrom=dateFrom, dateTo=dateTo, updatedFrom=updatedFrom)
+    
+    def search_plans(self,dateFrom, dateTo, accountIds=None, assigneeTypes=None, genericResourceIds=None, planIds=None, planItemIds=None, planItemTypes=None, plannedTimeBreakdown=None, updatedFrom=None):
+        return self.get_plans(dateFrom=dateFrom, dateTo=dateTo, accountIds=accountIds, assigneeTypes=assigneeTypes, genericResourceIds=genericResourceIds, planIds=planIds, planItemIds=planItemIds, planItemTypes=planItemTypes, plannedTimeBreakdown=plannedTimeBreakdown, updatedFrom=updatedFrom)
+
     def create_plan(self, assigneeId, assigneeType, startDate, endDate, planItemId, planItemType, plannedSecondsPerDay, description=None, includeNonWorkingDays=None, planApprovalReviewerId=None, planApprovalStatus=None, recurrenceEndDate=None, rule=None):
         """
         :param assigneeId:
@@ -237,7 +279,10 @@ class Tempo(RestAPIClient):
         url = f"/plans/{id}"
         return self.put(url, params=params)
 
-
+    def delete_plan(self, id):
+        url = f"/plans/{id}"
+        return self.delete(url)
+       
     # Programs
     ## TBD
 
