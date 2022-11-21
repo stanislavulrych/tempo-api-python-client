@@ -18,7 +18,7 @@ from datetime import date, datetime
 from .rest_client import RestAPIClient
 
 
-class TempoV4(RestAPIClient):
+class Tempo(RestAPIClient):
     """
     Basic Client for accessing Tempo Rest API as provided by api.tempo.io.
     """

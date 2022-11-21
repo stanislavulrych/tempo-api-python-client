@@ -2,7 +2,7 @@ from unittest import TestCase, main
 import os
 import sys
 
-from tempoapiclient import client
+from tempoapiclient.client_v4 import Tempo
 
 # please set TEMPO_AUTH_TOKEN to environment before running this test
 
@@ -10,12 +10,12 @@ from tempoapiclient import client
 class TestClient(TestCase):
 
     def setUp(self):
-        self.tempo = client.Tempo(auth_token=os.environ.get('TEMPO_AUTH_TOKEN'))
+        self.tempo = Tempo(auth_token=os.environ.get('TEMPO_AUTH_TOKEN'))
         self.dateFrom = "2020-09-01"
         self.dateTo = "2020-10-01"
     
     def test_client_creation(self):
-        self.assertTrue(isinstance(self.tempo, client.Tempo))
+        self.assertTrue(isinstance(self.tempo, Tempo))
         pass
 
     def test_get_accounts(self):
