@@ -61,6 +61,10 @@ class Tempo(RestAPIClient):
         path_absolute = super().url_joiner(self._base_url, path)
         return super().post(path_absolute, data=data, params=params, headers=headers, trailing=trailing)
 
+    def put(self, path, data=None, params=None, headers=None, not_json_response=None, trailing=None):
+        path_absolute = super().url_joiner(self._base_url, path)
+        return super().put(path_absolute, data=data, params=params, headers=headers, trailing=trailing)
+
     def delete(self, path, data=None, params=None, headers=None, not_json_response=None, trailing=None):
         path_absolute = super().url_joiner(self._base_url, path)
         return super().delete(path_absolute, headers=headers, trailing=trailing)
@@ -183,16 +187,16 @@ class Tempo(RestAPIClient):
             return self.post(url, data=data)
         return 
     
-    def get_plan(self,id):
+    def get_plan(self, id):
         return self.get_plans(id=id)
     
-    def get_plan_for_user(self,accountId, plannedTimeBreakdown=None, dateFrom=None, dateTo=None, updatedFrom=None):
+    def get_plan_for_user(self, accountId, plannedTimeBreakdown=None, dateFrom=None, dateTo=None, updatedFrom=None):
         return self.get_plans(accountId=accountId, plannedTimeBreakdown=plannedTimeBreakdown, dateFrom=dateFrom, dateTo=dateTo, updatedFrom=updatedFrom)
     
-    def get_plan_for_resource(self,genericResourceId, plannedTimeBreakdown=None, dateFrom=None, dateTo=None, updatedFrom=None):
+    def get_plan_for_resource(self, genericResourceId, plannedTimeBreakdown=None, dateFrom=None, dateTo=None, updatedFrom=None):
         return self.get_plans(genericResourceId=genericResourceId, plannedTimeBreakdown=plannedTimeBreakdown, dateFrom=dateFrom, dateTo=dateTo, updatedFrom=updatedFrom)
     
-    def search_plans(self,dateFrom, dateTo, accountIds=None, assigneeTypes=None, genericResourceIds=None, planIds=None, planItemIds=None, planItemTypes=None, plannedTimeBreakdown=None, updatedFrom=None):
+    def search_plans(self, dateFrom, dateTo, accountIds=None, assigneeTypes=None, genericResourceIds=None, planIds=None, planItemIds=None, planItemTypes=None, plannedTimeBreakdown=None, updatedFrom=None):
         return self.get_plans(dateFrom=dateFrom, dateTo=dateTo, accountIds=accountIds, assigneeTypes=assigneeTypes, genericResourceIds=genericResourceIds, planIds=planIds, planItemIds=planItemIds, planItemTypes=planItemTypes, plannedTimeBreakdown=plannedTimeBreakdown, updatedFrom=updatedFrom)
 
     def create_plan(self, assigneeId, assigneeType, startDate, endDate, planItemId, planItemType, plannedSecondsPerDay, description=None, includeNonWorkingDays=None, planApprovalReviewerId=None, planApprovalStatus=None, recurrenceEndDate=None, rule=None):
@@ -211,30 +215,37 @@ class Tempo(RestAPIClient):
         :param recurrenceEndDate:
         :param rule:
         """
-        params = {
+        data = {
             "assigneeId": assigneeId,
-            "assigneeType": assigneeType,
+            "assigneeType": assigneeType, # Enum: "USER" "GENERIC"
             "startDate": self._resolve_date(startDate).isoformat(),
             "endDate": self._resolve_date(endDate).isoformat(),
             "planItemId": planItemId,
-            "planItemType": planItemType,
+            "planItemType": planItemType, # Enum: "ISSUE" "PROJECT"
             "plannedSecondsPerDay": plannedSecondsPerDay
         }
         if description:
-            params['description'] = description
+            data['description'] = description
         if includeNonWorkingDays:
-            params['includeNonWorkingDays'] = includeNonWorkingDays
+            data['includeNonWorkingDays'] = includeNonWorkingDays
         if planApprovalReviewerId:
-            params['planApprovalReviewerId'] = planApprovalReviewerId
-        if planApprovalStatus:
-            params['accounplanApprovalStatustIds'] = planApprovalStatus
+            if not planApprovalStatus:
+                data['planApproval'] = {
+                    "reviewerId": planApprovalReviewerId,
+                    "status": "REQUESTED"
+                } 
+            else:
+                data['planApproval'] = {
+                    "reviewerId": planApprovalReviewerId,
+                    "status": planApprovalStatus # Enum: "APPROVED" "REJECTED" "REQUESTED"
+                } 
         if recurrenceEndDate:
-            params['recurrenceEndDate'] = recurrenceEndDate
+            data['recurrenceEndDate'] = recurrenceEndDate
         if rule:
-            params['rule'] = rule
+            data['rule'] = rule   # Enum: "NEVER" "WEEKLY" "BI_WEEKLY" "MONTHLY"
 
         url = "/plans"
-        return self.post(url, params=params)
+        return self.post(url, data=data)
         
     def update_plan(self, id, assigneeId, assigneeType, startDate, endDate, planItemId, planItemType, plannedSecondsPerDay, description=None, includeNonWorkingDays=None, planApprovalReviewerId=None, planApprovalStatus=None, recurrenceEndDate=None, rule=None):
         """
@@ -253,30 +264,37 @@ class Tempo(RestAPIClient):
         :param recurrenceEndDate:
         :param rule:
         """
-        params = {
+        data = {
             "assigneeId": assigneeId,
-            "assigneeType": assigneeType,
+            "assigneeType": assigneeType, # Enum: "USER" "GENERIC"
             "startDate": self._resolve_date(startDate).isoformat(),
             "endDate": self._resolve_date(endDate).isoformat(),
             "planItemId": planItemId,
-            "planItemType": planItemType,
+            "planItemType": planItemType, # Enum: "ISSUE" "PROJECT"
             "plannedSecondsPerDay": plannedSecondsPerDay
         }
         if description:
-            params['description'] = description
+            data['description'] = description
         if includeNonWorkingDays:
-            params['includeNonWorkingDays'] = includeNonWorkingDays
+            data['includeNonWorkingDays'] = includeNonWorkingDays
         if planApprovalReviewerId:
-            params['planApprovalReviewerId'] = planApprovalReviewerId
-        if planApprovalStatus:
-            params['accounplanApprovalStatustIds'] = planApprovalStatus
+            if not planApprovalStatus:
+                data['planApproval'] = {
+                    "reviewerId": planApprovalReviewerId,
+                    "status": "REQUESTED"
+                } 
+            else:
+                data['planApproval'] = {
+                    "reviewerId": planApprovalReviewerId,
+                    "status": planApprovalStatus # Enum: "APPROVED" "REJECTED" "REQUESTED"
+                } 
         if recurrenceEndDate:
-            params['recurrenceEndDate'] = recurrenceEndDate
+            data['recurrenceEndDate'] = recurrenceEndDate
         if rule:
-            params['rule'] = rule
+            data['rule'] = rule   # Enum: "NEVER" "WEEKLY" "BI_WEEKLY" "MONTHLY"
 
         url = f"/plans/{id}"
-        return self.put(url, params=params)
+        return self.put(url, data=data)
 
     def delete_plan(self, id):
         url = f"/plans/{id}"
