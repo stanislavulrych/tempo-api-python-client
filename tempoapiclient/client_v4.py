@@ -496,7 +496,7 @@ class Tempo(RestAPIClient):
 # Worklogs
 
     def get_worklogs(self, dateFrom, dateTo, updatedFrom=None, worklogId=None, jiraWorklogId=None, jiraFilterId=None,
-                     accountKey=None, projectKey=None, teamId=None, accountId=None, issueId=None):
+                     accountKey=None, projectId=None, teamId=None, accountId=None, issueId=None):
         """
         Returns worklogs for particular parameters.
         :param dateFrom:
@@ -506,7 +506,7 @@ class Tempo(RestAPIClient):
         :param jiraWorklogId:
         :param jiraFilterId:
         :param accountKey:
-        :param projectKey:
+        :param projectId:
         :param teamId:
         :param accountId:
         :param issue:
@@ -518,6 +518,9 @@ class Tempo(RestAPIClient):
             "offset": 0,
             "limit": self._limit
             }
+
+        if projectId:
+            params['projectId'] = projectId
 
         if updatedFrom:
             params["updatedFrom"] = self._resolve_date(updatedFrom).isoformat()
@@ -531,8 +534,6 @@ class Tempo(RestAPIClient):
             url += f"/jira/filter/{jiraFilterId}"
         elif accountKey:
             url += f"/account/{accountKey}"
-        elif projectKey:
-            url += f"/project/{projectKey}"
         elif teamId:
             url += f"/team/{teamId}"
         elif accountId:
