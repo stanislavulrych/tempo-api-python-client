@@ -332,13 +332,13 @@ class Tempo(RestAPIClient):
     ## TBD
 
     # Team - Memberships
-    def get_team_memberships(self, membershipId):
+    def get_team_memberships(self, teamId):
         """
         Returns members.
-        :param membershipId:
+        :param teamId:
         """
 
-        url = f"/team-memberships/{membershipId}"
+        url = f"/team-memberships/team/{teamId}"
         return self.get(url)
 
     def get_account_team_membership(self, teamId, accountId):
