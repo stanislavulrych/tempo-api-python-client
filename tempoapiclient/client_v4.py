@@ -542,3 +542,34 @@ class Tempo(RestAPIClient):
             url += f"/issue/{issueId}"
 
         return self.get(url, params=params)
+
+    def search_worklogs(self, dateFrom, dateTo, updatedFrom=None, authorIds=None, issueIds=None, projectIds=None,
+                     	offset=None, limit=None):
+        """
+        Retrieves a list of existing Worklogs that matches the given search parameter.
+        :param offset:
+        :param limit:
+        """
+
+        params = {
+            "offset": 0 if offset is None else offset,
+            "limit": self._limit if limit is None else limit
+        }
+
+        data = {
+            "from": self._resolve_date(dateFrom).isoformat(),
+            "to": self._resolve_date(dateTo).isoformat()
+        }
+
+        if updatedFrom:
+            data["updatedFrom"] = updatedFrom
+        if authorIds:
+            data["authorIds"] = authorIds
+        if issueIds:
+            data["issueIds"] = issueIds
+        if projectIds:
+            data["projectIds"] = projectIds
+
+        url = f"/worklogs/search"
+
+        return self.post(url, params=params, data=data)
