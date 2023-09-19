@@ -45,7 +45,7 @@ class RestAPIClient(object):
         try:
             # If the response was successful, no Exception will be raised
             response.raise_for_status()
-            return response.json()
+            return response.json() if response.content else {}
 
         except HTTPError as http_err:
             log.error(f'HTTP error occurred: {http_err.response.text}')
