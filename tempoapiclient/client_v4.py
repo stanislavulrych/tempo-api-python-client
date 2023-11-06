@@ -124,7 +124,7 @@ class Tempo(RestAPIClient):
         :param plannedTimeBreakdown:    ~~~ search plans ~~~
         :param updatedFrom:             ~~~ retrieve plans for user / retrieve plans for generic resource / search plans ~~~
         """
-        
+
         if id:
             url = f"plans/{id}"
             return self.get(url)
@@ -166,7 +166,7 @@ class Tempo(RestAPIClient):
                 "to": self._resolve_date(dateTo).isoformat(),
                 "offset": 0,
                 "limit": self._limit
-            }    
+            }
             if accountIds:
                 data['accountIds'] = accountIds
             if assigneeTypes:
@@ -185,17 +185,17 @@ class Tempo(RestAPIClient):
                 data['updatedFrom'] = self._resolve_date(updatedFrom).isoformat()
             url = "/plans/search"
             return self.post(url, data=data)
-        return 
-    
+        return
+
     def get_plan(self, id):
         return self.get_plans(id=id)
-    
+
     def get_plan_for_user(self, accountId, plannedTimeBreakdown=None, dateFrom=None, dateTo=None, updatedFrom=None):
         return self.get_plans(accountId=accountId, plannedTimeBreakdown=plannedTimeBreakdown, dateFrom=dateFrom, dateTo=dateTo, updatedFrom=updatedFrom)
-    
+
     def get_plan_for_resource(self, genericResourceId, plannedTimeBreakdown=None, dateFrom=None, dateTo=None, updatedFrom=None):
         return self.get_plans(genericResourceId=genericResourceId, plannedTimeBreakdown=plannedTimeBreakdown, dateFrom=dateFrom, dateTo=dateTo, updatedFrom=updatedFrom)
-    
+
     def search_plans(self, dateFrom, dateTo, accountIds=None, assigneeTypes=None, genericResourceIds=None, planIds=None, planItemIds=None, planItemTypes=None, plannedTimeBreakdown=None, updatedFrom=None):
         return self.get_plans(dateFrom=dateFrom, dateTo=dateTo, accountIds=accountIds, assigneeTypes=assigneeTypes, genericResourceIds=genericResourceIds, planIds=planIds, planItemIds=planItemIds, planItemTypes=planItemTypes, plannedTimeBreakdown=plannedTimeBreakdown, updatedFrom=updatedFrom)
 
@@ -233,12 +233,12 @@ class Tempo(RestAPIClient):
                 data['planApproval'] = {
                     "reviewerId": planApprovalReviewerId,
                     "status": "REQUESTED"
-                } 
+                }
             else:
                 data['planApproval'] = {
                     "reviewerId": planApprovalReviewerId,
                     "status": planApprovalStatus # Enum: "APPROVED" "REJECTED" "REQUESTED"
-                } 
+                }
         if recurrenceEndDate:
             data['recurrenceEndDate'] = recurrenceEndDate
         if rule:
@@ -246,7 +246,7 @@ class Tempo(RestAPIClient):
 
         url = "/plans"
         return self.post(url, data=data)
-        
+
     def update_plan(self, id, assigneeId, assigneeType, startDate, endDate, planItemId, planItemType, plannedSecondsPerDay, description=None, includeNonWorkingDays=None, planApprovalReviewerId=None, planApprovalStatus=None, recurrenceEndDate=None, rule=None):
         """
         :param id:
@@ -282,12 +282,12 @@ class Tempo(RestAPIClient):
                 data['planApproval'] = {
                     "reviewerId": planApprovalReviewerId,
                     "status": "REQUESTED"
-                } 
+                }
             else:
                 data['planApproval'] = {
                     "reviewerId": planApprovalReviewerId,
                     "status": planApprovalStatus # Enum: "APPROVED" "REJECTED" "REQUESTED"
-                } 
+                }
         if recurrenceEndDate:
             data['recurrenceEndDate'] = recurrenceEndDate
         if rule:
@@ -299,7 +299,7 @@ class Tempo(RestAPIClient):
     def delete_plan(self, id):
         url = f"/plans/{id}"
         return self.delete(url)
-       
+
     # Programs
     ## TBD
 
@@ -573,3 +573,101 @@ class Tempo(RestAPIClient):
         url = f"/worklogs/search"
 
         return self.post(url, params=params, data=data)
+    def create_customer(self, key=None, name=None, data=None):
+        """
+        Create customer
+        :param key:
+        :param name:
+        """
+
+        # either provide data, or build from other params
+        if (not(data)):
+          data = {
+            "key": key,
+            "name": name
+          }
+        url = f"/customers"
+
+        return self.post(url, data=data)
+
+    def update_customer(self, key=None, name=None, data=None):
+        """
+        Update customer
+        :param key:
+        :param name:
+        """
+
+        # either provide data, or build from other params
+        if (not(data)):
+          data = {
+            "key": key,
+            "name": name
+          }
+
+        url = f"/customers/{key}"
+
+        return self.put(url, data=data)
+
+    def create_account(self, key=None, leadAccountId=None, name=None, status=None, categoryKey=None, contactAccountId=None, customerKey=None, externalContactName=None, isGlobal=None, data=None):
+        """
+        Create account
+        :param key:
+        :param leadAccountId:
+        :param name:
+        :param status: # Enum: "CLOSED" "OPEN" "ARCHIVED"
+        :param categoryKey:
+        :param contactAccountId:
+        :param customerKey:
+        :param externalContactName:
+        :param isGlobal:
+        """
+
+        # either provide data, or build from other params
+        if (not(data)):
+          data = {
+            "key": key,
+            "leadAccountId": leadAccountId,
+            "name": name,
+            "status": status,
+            "categoryKey": categoryKey,
+            "contactAccountId": contactAccountId,
+            "customerKey": customerKey,
+            "externalContactName": externalContactName,
+            "global": isGlobal
+          }
+
+        url = f"/accounts"
+
+        return self.post(url, data=data)
+
+    def update_account(self, key=None, leadAccountId=None, name=None, status=None, categoryKey=None, contactAccountId=None, customerKey=None, externalContactName=None, isGlobal=None, data=None):
+        """
+        Create account
+        :param key:
+        :param leadAccountId:
+        :param name:
+        :param status: # Enum: "CLOSED" "OPEN" "ARCHIVED"
+        :param categoryKey:
+        :param contactAccountId:
+        :param customerKey:
+        :param externalContactName:
+        :param isGlobal:
+        """
+
+        # either provide data, or build from other params
+        if (not(data)):
+          data = {
+            "key": key,
+            "leadAccountId": leadAccountId,
+            "name": name,
+            "status": status,
+            "categoryKey": categoryKey,
+            "contactAccountId": contactAccountId,
+            "customerKey": customerKey,
+            "externalContactName": externalContactName,
+            "global": isGlobal
+          }
+
+        url = f"/accounts/{key}"
+
+        return self.put(url, data=data)
