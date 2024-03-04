@@ -3,7 +3,7 @@ import logging
 import requests
 from requests.exceptions import HTTPError
 from json import dumps
-from six.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 
 log = logging.getLogger()
 
@@ -128,6 +128,8 @@ class RestAPIClient(object):
         return self._response_handler(response)
 
     def post(self, path, data=None, json=None, headers=None, files=None, params=None, trailing=None):
+        headers = self.default_headers
+        headers["Authorization"] = "Bearer {}".format(self._auth_token)
         response = self._request('POST', path=path, data=data, json=json, headers=headers, files=files, params=params,
                                  trailing=trailing)
         return self._response_handler(response)
