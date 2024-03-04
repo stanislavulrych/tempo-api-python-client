@@ -37,6 +37,38 @@ class Tempo(RestAPIClient):
         parsed = datetime.strptime(value,  r"%Y-%m-%d").date()
 
         return parsed
+    
+    def _resolve_time(self, value):
+        _v = self.strip_hrs(value)
+        _h = 0
+        _m = 0
+        _s = 0
+        if _v.__contains__("pm"):
+            _v = _v.replace("pm","")
+            _h = int(_v.split(":")[0])
+            if _h < 12:
+                _h = _h+12
+            elif _h == 12:
+                _h = 0
+        else:
+            _h = int(_v.split(":")[0])
+        if _h > 99:
+            _h = int(_h/100)
+        if _v.count(":") == 2:
+            _m = int(_v.split(":")[1])
+            _s = int(_v.split(":")[2])
+        elif _v.count(":") == 1:
+            _m = int(_v.split(":")[1])
+        value = "{:02d}:{:02d}:{:02d}".format(_h, _m, _s)
+        parsed = datetime.strptime(value,  r"%H:%M:%S").time()
+        return parsed
+    
+    def strip_hrs(self, value):
+        _hrs = ["am", "uhr", "hrs", "hours", "hour"]
+        retval = value.lower().replace(" ","").replace(".",":")
+        for i in _hrs:
+            retval = retval.replace(i, "")
+        return retval.strip()
 
     def get(self, path, data=None, flags=None, params=None, headers=None, not_json_response=None, trailing=None):
         path_absolute = super().url_joiner(self._base_url, path)
@@ -573,6 +605,46 @@ class Tempo(RestAPIClient):
         url = f"/worklogs/search"
 
         return self.post(url, params=params, data=data)
+
+    def create_worklog(self, accountId, issueId, dateFrom, timeSpentSeconds, billableSeconds=None, description=None,
+                       remainingEstimateSeconds=None, startTime=None):
+        """
+        Creates a new Worklog using the provided input and returns the newly created Worklog.
+        :param accountId:
+        :param issueId:
+        :param dateFrom:
+        :param timeSpentSeconds:
+        :param billableSeconds:
+        :param description:
+        :param remainingEstimateSeconds:
+        :param startTime:
+        """
+
+        url = f"/worklogs"
+        
+        data = {
+            "authorAccountId": str(accountId),
+            "issueId": int(issueId),
+            "startDate": self._resolve_date(dateFrom).isoformat(),
+            "timeSpentSeconds": int(timeSpentSeconds)
+        }
+
+        if billableSeconds:
+            data["billableSeconds"] = int(billableSeconds)
+        if description:
+            data["description"] = str(description)
+        if remainingEstimateSeconds:
+            data["remainingEstimateSeconds"] = int(remainingEstimateSeconds)
+        if startTime:
+            data["startTime"] = self._resolve_time(startTime).isoformat()
+        
+        return self.post(url, data=data)
+
+
+
+
+# Customer
+
     def create_customer(self, key=None, name=None, data=None):
         """
         Create customer
@@ -607,6 +679,8 @@ class Tempo(RestAPIClient):
         url = f"/customers/{key}"
 
         return self.put(url, data=data)
+
+# Account
 
     def create_account(self, key=None, leadAccountId=None, name=None, status=None, categoryKey=None, contactAccountId=None, customerKey=None, externalContactName=None, isGlobal=None, data=None):
         """
