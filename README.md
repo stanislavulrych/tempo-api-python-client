@@ -22,7 +22,7 @@ pip install tempo-api-python-client
 
 You need an API token for communicating with tempo REST APIs. 
 
-For v3 use
+### For v3 use
 
     from tempoapiclient import client_v3
 
@@ -38,13 +38,15 @@ For v3 use
     for i in worklogs:
         print(i)
 
-For v4 use
+### For v4 use
 
     from tempoapiclient import client_v4
 
     tempo = client_v4.Tempo(
         auth_token="<your_tempo_api_key>",
         )
+
+#### Retrieve Worklogs
 
     worklogs = tempo.get_worklogs(
         dateFrom="2019-11-10",
@@ -54,6 +56,17 @@ For v4 use
     for i in worklogs:
         print(i)
 
+
+#### Create Worklog
+
+    logged_worklog = tempo.create_worklog(
+        accountId="<your_jira_account_id>",
+        issueId=12345,
+        dateFrom="2019-11-11",
+        timeSpentSeconds=3600,
+        description="Something",
+        startTime="17:00:00"
+    )
 
 There are also functions to retrieve `user` and `team`-specific worklogs.
 
