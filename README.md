@@ -56,6 +56,8 @@ You need an API token for communicating with tempo REST APIs.
     for i in worklogs:
         print(i)
 
+There are also functions to retrieve `user` and `team`-specific worklogs.
+
 
 #### Create Worklog
 
@@ -82,8 +84,6 @@ You need an API token for communicating with tempo REST APIs.
 #### Delete Worklog
 
     delete_response = tempo.delete_worklog(<worklog_id>)
-
-There are also functions to retrieve `user` and `team`-specific worklogs.
 
 
 ## Code Format
