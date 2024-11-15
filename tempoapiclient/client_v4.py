@@ -640,8 +640,50 @@ class Tempo(RestAPIClient):
         
         return self.post(url, data=data)
 
+    def update_worklog(self, id, accountId, dateFrom, timeSpentSeconds, billableSeconds=None, description=None,
+                       remainingEstimateSeconds=None, startTime=None):
+        """
+        Updates an existing Worklog using the provided input and returns the updated Worklog.
+        :param id: The ID of the Worklog to be updated
+        :param accountId: The Author account ID of the user author
+        :param dateFrom: The start date of the Worklog
+        :param timeSpentSeconds: The total amount of time spent in seconds
+        :param billableSeconds: The amount of seconds billable
+        :param description: The description of the Worklog
+        :param remainingEstimateSeconds: The total amount of estimated remaining seconds
+        :param startTime: The start time of the Worklog
 
+        See https://apidocs.tempo.io/#tag/Worklogs/operation/updateWorklog
+        """
 
+        url = f"/worklogs/{id}"
+        
+        data = {
+            "authorAccountId": str(accountId),
+            "startDate": self._resolve_date(dateFrom).isoformat(),
+            "timeSpentSeconds": int(timeSpentSeconds),
+        }
+
+        if billableSeconds:
+            data["billableSeconds"] = int(billableSeconds)
+        if description:
+            data["description"] = str(description)
+        if remainingEstimateSeconds:
+            data["remainingEstimateSeconds"] = int(remainingEstimateSeconds)
+        if startTime:
+            data["startTime"] = self._resolve_time(startTime).isoformat()
+        
+        return self.put(url, data=data)
+
+    def delete_worklog(self, id):
+        """
+        Deletes a Worklog
+        :param id: The ID of the Worklog to be deleted
+
+        See https://apidocs.tempo.io/#tag/Worklogs/operation/deleteWorklog
+        """
+        url = f"/worklogs/{id}"
+        return self.delete(url)
 
 # Customer
 

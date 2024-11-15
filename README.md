@@ -56,6 +56,8 @@ You need an API token for communicating with tempo REST APIs.
     for i in worklogs:
         print(i)
 
+There are also functions to retrieve `user` and `team`-specific worklogs.
+
 
 #### Create Worklog
 
@@ -68,7 +70,20 @@ You need an API token for communicating with tempo REST APIs.
         startTime="17:00:00"
     )
 
-There are also functions to retrieve `user` and `team`-specific worklogs.
+#### Update Worklog
+
+    logged_worklog = tempo.update_worklog(
+        id="<id_of_the_worklog_to_be_updated>"  # required
+        accountId="<your_jira_account_id>",     # required
+        dateFrom="2019-11-11",                  # required
+        timeSpentSeconds=3600,                  # required
+        description="Something",                # optional
+        startTime="17:00:00"                    # optional
+    )
+
+#### Delete Worklog
+
+    delete_response = tempo.delete_worklog(<worklog_id>)
 
 
 ## Code Format
