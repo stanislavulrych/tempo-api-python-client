@@ -551,9 +551,6 @@ class Tempo(RestAPIClient):
             "limit": self._limit
             }
 
-        if projectId:
-            params['projectId'] = projectId
-
         if updatedFrom:
             params["updatedFrom"] = self._resolve_date(updatedFrom).isoformat()
 
@@ -572,7 +569,9 @@ class Tempo(RestAPIClient):
             url += f"/user/{accountId}"
         elif issueId:
             url += f"/issue/{issueId}"
-
+        elif projectId:
+            url += f"/project/{projectId}"
+        
         return self.get(url, params=params)
 
     def search_worklogs(self, dateFrom, dateTo, updatedFrom=None, authorIds=None, issueIds=None, projectIds=None,
