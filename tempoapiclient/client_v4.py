@@ -606,7 +606,7 @@ class Tempo(RestAPIClient):
         return self.post(url, params=params, data=data)
 
     def create_worklog(self, accountId, issueId, dateFrom, timeSpentSeconds, billableSeconds=None, description=None,
-                       remainingEstimateSeconds=None, startTime=None):
+                       remainingEstimateSeconds=None, startTime=None, attributes=None):
         """
         Creates a new Worklog using the provided input and returns the newly created Worklog.
         :param accountId:
@@ -617,6 +617,7 @@ class Tempo(RestAPIClient):
         :param description:
         :param remainingEstimateSeconds:
         :param startTime:
+        :param attributes:
         """
 
         url = f"/worklogs"
@@ -625,7 +626,8 @@ class Tempo(RestAPIClient):
             "authorAccountId": str(accountId),
             "issueId": int(issueId),
             "startDate": self._resolve_date(dateFrom).isoformat(),
-            "timeSpentSeconds": int(timeSpentSeconds)
+            "timeSpentSeconds": int(timeSpentSeconds),
+            "attributes": attributes
         }
 
         if billableSeconds:

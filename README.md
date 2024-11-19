@@ -68,6 +68,7 @@ There are also functions to retrieve `user` and `team`-specific worklogs.
         timeSpentSeconds=3600,
         description="Something",
         startTime="17:00:00"
+        attributes=[{_WorkType_: "Development"}]
     )
 
 #### Update Worklog
