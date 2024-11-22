@@ -488,7 +488,7 @@ class Tempo(RestAPIClient):
 
         return self.get(url, params=params)
 
-    def get_floating_holidays(self, holidaySchemeId=None):
+    def get_floating_holidays(self, holidaySchemeId):
         """
         Retrieve floating holidays for an existing holiday scheme.
         :param holidaySchemeId:
@@ -497,7 +497,6 @@ class Tempo(RestAPIClient):
 
         return self.get(url)
 
-    
     def create_holiday_scheme(self, schemeName, schemeDescription=None):
         """
         Create holiday scheme
