@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tempo-api-python-client"
+version = "0.13.0"
+description = "Async Python bindings for Tempo REST API v4"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Stanislav Ulrych", email = "stanislav.ulrych@gmail.com" }]
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.27",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Framework :: AsyncIO",
+]
+
+[project.urls]
+Homepage = "https://github.com/stanislavulrych/tempo-api-python-client"
+"Bug Tracker" = "https://github.com/stanislavulrych/tempo-api-python-client/issues"
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-asyncio", "ruff"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tempoapi"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

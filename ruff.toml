@@ -1,0 +1,32 @@
+line-length = 140
+target-version = "py312"
+
+[lint]
+select = [
+    "E",      # pycodestyle errors
+    "F",      # pyflakes
+    "W",      # pycodestyle warnings
+    "I",      # isort (import sorting)
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "ANN",    # flake8-annotations (type annotations)
+    "ARG",    # flake8-unused-arguments
+    "C4",     # flake8-comprehensions
+    "PIE",    # flake8-pie
+    "RUF",    # ruff-specific rules
+    "B",      # flake8-bugbear
+    "A",      # flake8-builtins
+    "T10",    # flake8-debugger
+]
+ignore = [
+    "ANN401", # Any is appropriate for JSON API responses
+    "F405", # defined from star imports,
+]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+skip-magic-trailing-comma = false
+docstring-code-format = true
+docstring-code-line-length = "dynamic"
